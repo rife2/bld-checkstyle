@@ -39,35 +39,35 @@ class CheckstyleOperationTest {
     @Test
     void branchMatchingXpath() {
         var op = new CheckstyleOperation().fromProject(new Project()).branchMatchingXpath(FOO);
-        assertThat(op.optionsWithArg.get("-b")).isEqualTo(FOO);
+        assertThat(op.options.get("-b")).isEqualTo(FOO);
     }
 
     @Test
     void configurationFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).configurationFile(FOO);
-        assertThat(op.optionsWithArg.get("-c")).isEqualTo(FOO);
+        assertThat(op.options.get("-c")).isEqualTo(FOO);
     }
 
     @Test
     void debug() {
         var op = new CheckstyleOperation().fromProject(new Project()).debug(true);
-        assertThat(op.options.contains("-d")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-d")).as(ADD).isTrue();
         op = op.debug(false);
-        assertThat(op.options.contains("-d")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-d")).as(REMOVE).isFalse();
     }
 
     @Test
     void exclude() {
         var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO);
-        assertThat(op.optionsWithArg.get("-e")).isEqualTo(FOO);
+        assertThat(op.options.get("-e")).isEqualTo(FOO);
         op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO));
-        assertThat(op.optionsWithArg.get("-e")).as("as list").isEqualTo(FOO);
+        assertThat(op.options.get("-e")).as("as list").isEqualTo(FOO);
     }
 
     @Test
     void excludedPathPattern() {
         var op = new CheckstyleOperation().fromProject(new Project()).excludedPathPattern(FOO);
-        assertThat(op.optionsWithArg.get("-x")).isEqualTo(FOO);
+        assertThat(op.options.get("-x")).isEqualTo(FOO);
     }
 
     @Test
@@ -96,19 +96,19 @@ class CheckstyleOperationTest {
                 .startsWith("java -cp ")
                 .endsWith(
                         "com.puppycrawl.tools.checkstyle.Main " +
-                                "-d -E " +
                                 "-p config/checkstyle.properties " +
                                 "-b xpath " +
                                 "-c config/checkstyle.xml " +
+                                "-d -E " +
                                 "src/main/java src/test/java");
     }
 
     @Test
     void executeIgnoredModules() {
         var op = new CheckstyleOperation().fromProject(new Project()).executeIgnoredModules(true);
-        assertThat(op.options.contains("-E")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-E")).as(ADD).isTrue();
         op = op.executeIgnoredModules(false);
-        assertThat(op.options.contains("-E")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-E")).as(REMOVE).isFalse();
     }
 
     @Test
@@ -127,41 +127,41 @@ class CheckstyleOperationTest {
     @Test
     void format() {
         var op = new CheckstyleOperation().fromProject(new Project()).format(FOO);
-        assertThat(op.optionsWithArg.get("-f")).isEqualTo(FOO);
+        assertThat(op.options.get("-f")).isEqualTo(FOO);
     }
 
     @Test
     void generateXpathSuppression() {
         var op = new CheckstyleOperation().fromProject(new Project()).generateXpathSuppression(true);
-        assertThat(op.options.contains("-g")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-g")).as(ADD).isTrue();
         op = op.generateXpathSuppression(false);
-        assertThat(op.options.contains("-g")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-g")).as(REMOVE).isFalse();
     }
 
     @Test
     void javadocTree() {
         var op = new CheckstyleOperation().fromProject(new Project()).javadocTree(true);
-        assertThat(op.options.contains("-j")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-j")).as(ADD).isTrue();
         op = op.javadocTree(false);
-        assertThat(op.options.contains("-j")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-j")).as(REMOVE).isFalse();
     }
 
     @Test
     void lineColumn() {
         var op = new CheckstyleOperation().fromProject(new Project()).lineColumn(FOO);
-        assertThat(op.optionsWithArg.get("-s")).isEqualTo(FOO);
+        assertThat(op.options.get("-s")).isEqualTo(FOO);
     }
 
     @Test
     void output() {
         var op = new CheckstyleOperation().fromProject(new Project()).output(FOO);
-        assertThat(op.optionsWithArg.get("-o")).isEqualTo(FOO);
+        assertThat(op.options.get("-o")).isEqualTo(FOO);
     }
 
     @Test
     void propertiesFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).propertiesFile(FOO);
-        assertThat(op.optionsWithArg.get("-p")).isEqualTo(FOO);
+        assertThat(op.options.get("-p")).isEqualTo(FOO);
     }
 
     @Test
@@ -175,30 +175,30 @@ class CheckstyleOperationTest {
     @Test
     void tabWith() {
         var op = new CheckstyleOperation().fromProject(new Project()).tabWith(9);
-        assertThat(op.optionsWithArg.get("-w")).isEqualTo("9");
+        assertThat(op.options.get("-w")).isEqualTo("9");
     }
 
     @Test
     void tree() {
         var op = new CheckstyleOperation().fromProject(new Project()).tree(true);
-        assertThat(op.options.contains("-t")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-t")).as(ADD).isTrue();
         op = op.tree(false);
-        assertThat(op.options.contains("-t")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-t")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithComments() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithComments(true);
-        assertThat(op.options.contains("-T")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-T")).as(ADD).isTrue();
         op = op.treeWithComments(false);
-        assertThat(op.options.contains("-T")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-T")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithJavadoc() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithJavadoc(true);
-        assertThat(op.options.contains("-J")).as(ADD).isTrue();
+        assertThat(op.options.containsKey("-J")).as(ADD).isTrue();
         op = op.treeWithJavadoc(false);
-        assertThat(op.options.contains("-J")).as(REMOVE).isFalse();
+        assertThat(op.options.containsKey("-J")).as(REMOVE).isFalse();
     }
 }

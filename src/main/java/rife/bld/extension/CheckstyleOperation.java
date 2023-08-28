@@ -35,11 +35,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * The command line options.
      */
-    protected final List<String> options = new ArrayList<>();
-    /**
-     * The command line options with arguments.
-     */
-    protected final Map<String, String> optionsWithArg = new ConcurrentHashMap<>();
+    protected final Map<String, String> options = new ConcurrentHashMap<>();
+
     /**
      * The source files(s) or folder(s).
      */
@@ -50,7 +47,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Shows Abstract Syntax Tree(AST) branches that match given XPath query.
      */
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
-        optionsWithArg.put("-b", xPathQuery);
+        options.put("-b", xPathQuery);
         return this;
     }
 
@@ -60,7 +57,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * method. A configuration file is required.
      */
     public CheckstyleOperation configurationFile(String file) {
-        optionsWithArg.put("-c", file);
+        options.put("-c", file);
         return this;
     }
 
@@ -69,7 +66,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation debug(boolean isDebug) {
         if (isDebug) {
-            options.add("-d");
+            options.put("-d", "");
         } else {
             options.remove("-d");
         }
@@ -84,7 +81,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation exclude(String... path) {
         for (var p : path) {
-            optionsWithArg.put("-e", p);
+            options.put("-e", p);
         }
         return this;
     }
@@ -97,7 +94,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation exclude(Collection<String> path) {
         for (var p : path) {
-            optionsWithArg.put("-e", p);
+            options.put("-e", p);
         }
         return this;
     }
@@ -106,7 +103,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Directory/file pattern to exclude from CheckStyle. Multiple excludes are allowed.
      */
     public CheckstyleOperation excludedPathPattern(String pattern) {
-        optionsWithArg.put("-x", pattern);
+        options.put("-x", pattern);
         return this;
     }
 
@@ -127,15 +124,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
         final List<String> args = new ArrayList<>();
         args.add(javaTool());
+
         args.add("-cp");
         args.add(String.format("%s:%s:%s:%s", Path.of(project_.libTestDirectory().getPath(), "*"),
                 Path.of(project_.libCompileDirectory().getPath(), "*"), project_.buildMainDirectory(),
                 project_.buildTestDirectory()));
         args.add("com.puppycrawl.tools.checkstyle.Main");
-        args.addAll(options);
-        optionsWithArg.forEach((k, v) -> {
+
+        options.forEach((k, v) -> {
             args.add(k);
-            args.add(v);
+            if (!v.isEmpty()) {
+                args.add(v);
+            }
         });
 
         args.addAll(sourceDirs);
@@ -157,7 +157,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
         if (isAllowIgnoreModules) {
-            options.add("-E");
+            options.put("-E", "");
         } else {
             options.remove("-E");
         }
@@ -169,7 +169,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * default logger respectively. Defaults to {@code plain}.
      */
     public CheckstyleOperation format(String format) {
-        optionsWithArg.put("-f", format);
+        options.put("-f", format);
         return this;
     }
 
@@ -181,7 +181,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
         if (xPathSuppression) {
-            options.add("-g");
+            options.put("-g", "");
         } else {
             options.remove("-g");
         }
@@ -195,7 +195,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation javadocTree(boolean isTree) {
         if (isTree) {
-            options.add("-j");
+            options.put("-j", "");
         } else {
             options.remove("-j");
         }
@@ -212,7 +212,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * ok, but might result in undesirable matching and suppress other issues.
      */
     public CheckstyleOperation lineColumn(String lineColumn) {
-        optionsWithArg.put("-s", lineColumn);
+        options.put("-s", lineColumn);
         return this;
     }
 
@@ -220,7 +220,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Sets the output file. Defaults to stdout.
      */
     public CheckstyleOperation output(String file) {
-        optionsWithArg.put("-o", file);
+        options.put("-o", file);
         return this;
     }
 
@@ -228,7 +228,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Sets the property files to load.
      */
     public CheckstyleOperation propertiesFile(String file) {
-        optionsWithArg.put("-p", file);
+        options.put("-p", file);
         return this;
     }
 
@@ -257,7 +257,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Default value is {@code 8}.
      */
     public CheckstyleOperation tabWith(int length) {
-        optionsWithArg.put("-w", String.valueOf(length));
+        options.put("-w", String.valueOf(length));
         return this;
     }
 
@@ -267,7 +267,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation tree(boolean isTree) {
         if (isTree) {
-            options.add("-t");
+            options.put("-t", "");
         } else {
             options.remove("-t");
         }
@@ -280,7 +280,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation treeWithComments(boolean isTree) {
         if (isTree) {
-            options.add("-T");
+            options.put("-T", "");
         } else {
             options.remove("-T");
         }
@@ -295,7 +295,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
         if (isTree) {
-            options.add("-J");
+            options.put("-J", "");
         } else {
             options.remove("-J");
         }
