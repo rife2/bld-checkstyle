@@ -25,6 +25,8 @@ public void checkstyle() throws Exception {
 ./bld checkstyle
 ```
 
+- [View Examples](https://github.com/rife2/bld-checkstyle/blob/master/examples/src/bld/java/com/example/)
+
 Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary) for all available configuration options.
 
 ### Checkstyle Dependency
