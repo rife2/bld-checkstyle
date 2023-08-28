@@ -79,8 +79,23 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
+     *
+     * @see #sourceDir(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
+        for (var p : path) {
+            optionsWithArg.put("-e", p);
+        }
+        return this;
+    }
+
+    /**
+     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * path. Multiple excludes are allowed.
+     *
+     * @see #exclude(String...)
+     */
+    public CheckstyleOperation exclude(Collection<String> path) {
         for (var p : path) {
             optionsWithArg.put("-e", p);
         }
@@ -219,9 +234,21 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @see #sourceDir(Collection)
      */
     public CheckstyleOperation sourceDir(String... dir) {
         sourceDirs.addAll(Arrays.asList(dir));
+        return this;
+    }
+
+    /**
+     * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @see #sourceDir(String...)
+     */
+    public CheckstyleOperation sourceDir(Collection<String> dir) {
+        sourceDirs.addAll(dir);
         return this;
     }
 

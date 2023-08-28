@@ -24,13 +24,17 @@ import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 class CheckstyleOperationTest {
+    private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
+    private static final String REMOVE = "remove";
 
     @Test
     void branchMatchingXpath() {
@@ -47,15 +51,17 @@ class CheckstyleOperationTest {
     @Test
     void debug() {
         var op = new CheckstyleOperation().fromProject(new Project()).debug(true);
-        assertThat(op.options.contains("-d")).as("add").isTrue();
+        assertThat(op.options.contains("-d")).as(ADD).isTrue();
         op = op.debug(false);
-        assertThat(op.options.contains("-d")).as("remove").isFalse();
+        assertThat(op.options.contains("-d")).as(REMOVE).isFalse();
     }
 
     @Test
     void exclude() {
         var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO);
         assertThat(op.optionsWithArg.get("-e")).isEqualTo(FOO);
+        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO));
+        assertThat(op.optionsWithArg.get("-e")).as("as list").isEqualTo(FOO);
     }
 
     @Test
@@ -66,7 +72,7 @@ class CheckstyleOperationTest {
 
     @Test
     void execute() throws IOException, ExitStatusException, InterruptedException {
-        var tmpFile = File.createTempFile("checkstyle", ".txt");
+        var tmpFile = File.createTempFile("checkstyle-google", ".txt");
         tmpFile.deleteOnExit();
         var op = new CheckstyleOperation()
                 .fromProject(new WebProject())
@@ -90,19 +96,32 @@ class CheckstyleOperationTest {
                 .startsWith("java -cp ")
                 .endsWith(
                         "com.puppycrawl.tools.checkstyle.Main " +
-                        "-d -E " +
-                        "-p config/checkstyle.properties " +
-                        "-b xpath " +
-                        "-c config/checkstyle.xml " +
-                        "src/main/java src/test/java");
+                                "-d -E " +
+                                "-p config/checkstyle.properties " +
+                                "-b xpath " +
+                                "-c config/checkstyle.xml " +
+                                "src/main/java src/test/java");
     }
 
     @Test
     void executeIgnoredModules() {
         var op = new CheckstyleOperation().fromProject(new Project()).executeIgnoredModules(true);
-        assertThat(op.options.contains("-E")).as("add").isTrue();
+        assertThat(op.options.contains("-E")).as(ADD).isTrue();
         op = op.executeIgnoredModules(false);
-        assertThat(op.options.contains("-E")).as("remove").isFalse();
+        assertThat(op.options.contains("-E")).as(REMOVE).isFalse();
+    }
+
+    @Test
+    void executeSunChecks() throws IOException {
+        var tmpFile = File.createTempFile("checkstyle-sun", ".txt");
+        tmpFile.deleteOnExit();
+        var op = new CheckstyleOperation()
+                .fromProject(new WebProject())
+                .sourceDir(List.of("src/main/java", "src/test/java"))
+                .configurationFile("src/test/resources/sun_checks.xml")
+                .output(tmpFile.getAbsolutePath());
+        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
+        assertThat(tmpFile).exists();
     }
 
     @Test
@@ -114,17 +133,17 @@ class CheckstyleOperationTest {
     @Test
     void generateXpathSuppression() {
         var op = new CheckstyleOperation().fromProject(new Project()).generateXpathSuppression(true);
-        assertThat(op.options.contains("-g")).as("add").isTrue();
+        assertThat(op.options.contains("-g")).as(ADD).isTrue();
         op = op.generateXpathSuppression(false);
-        assertThat(op.options.contains("-g")).as("remove").isFalse();
+        assertThat(op.options.contains("-g")).as(REMOVE).isFalse();
     }
 
     @Test
     void javadocTree() {
         var op = new CheckstyleOperation().fromProject(new Project()).javadocTree(true);
-        assertThat(op.options.contains("-j")).as("add").isTrue();
+        assertThat(op.options.contains("-j")).as(ADD).isTrue();
         op = op.javadocTree(false);
-        assertThat(op.options.contains("-j")).as("remove").isFalse();
+        assertThat(op.options.contains("-j")).as(REMOVE).isFalse();
     }
 
     @Test
@@ -162,24 +181,24 @@ class CheckstyleOperationTest {
     @Test
     void tree() {
         var op = new CheckstyleOperation().fromProject(new Project()).tree(true);
-        assertThat(op.options.contains("-t")).as("add").isTrue();
+        assertThat(op.options.contains("-t")).as(ADD).isTrue();
         op = op.tree(false);
-        assertThat(op.options.contains("-t")).as("remove").isFalse();
+        assertThat(op.options.contains("-t")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithComments() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithComments(true);
-        assertThat(op.options.contains("-T")).as("add").isTrue();
+        assertThat(op.options.contains("-T")).as(ADD).isTrue();
         op = op.treeWithComments(false);
-        assertThat(op.options.contains("-T")).as("remove").isFalse();
+        assertThat(op.options.contains("-T")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithJavadoc() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithJavadoc(true);
-        assertThat(op.options.contains("-J")).as("add").isTrue();
+        assertThat(op.options.contains("-J")).as(ADD).isTrue();
         op = op.treeWithJavadoc(false);
-        assertThat(op.options.contains("-J")).as("remove").isFalse();
+        assertThat(op.options.contains("-J")).as(REMOVE).isFalse();
     }
 }
