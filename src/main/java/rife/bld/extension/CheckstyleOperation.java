@@ -92,8 +92,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @see #exclude(String...)
      */
-    public CheckstyleOperation exclude(Collection<String> path) {
-        for (var p : path) {
+    public CheckstyleOperation exclude(Collection<String> paths) {
+        for (var p : paths) {
             options.put("-e", p);
         }
         return this;
@@ -110,8 +110,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Part of the {@link #execute} operation, constructs the command list
      * to use for building the process.
-     *
-     * @since 1.5
      */
     @Override
     protected List<String> executeConstructProcessCommandList() {
@@ -247,8 +245,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @see #sourceDir(String...)
      */
-    public CheckstyleOperation sourceDir(Collection<String> dir) {
-        sourceDirs.addAll(dir);
+    public CheckstyleOperation sourceDir(Collection<String> dirs) {
+        sourceDirs.addAll(dirs);
         return this;
     }
 
