@@ -42,13 +42,13 @@ public class CheckstyleOperationBuild extends Project {
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
 
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 2)));
+                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)));
         scope(test)
-                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 2)))
-                .include(dependency("org.jsoup", "jsoup", version(1, 16, 1)))
+                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 4)))
+                .include(dependency("org.jsoup", "jsoup", version(1, 16, 2)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 0)))
-                .include(dependency("org.assertj:assertj-joda-time:2.2.0"));
+                .include(dependency("org.assertj", "assertj-core", version(3, 24, 2)));
         javadocOperation()
                 .javadocOptions()
                 .docLint(NO_MISSING)
