@@ -35,5 +35,5 @@ Don't forget to add a Checkstyle `test` dependency to your build file, as it is 
 
 ```java
 repositories = List.of(MAVEN_CENTRAL);
-scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 2)));
+scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 4)));
 
