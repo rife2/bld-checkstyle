@@ -27,14 +27,15 @@ import java.util.List;
 
 import static rife.bld.dependencies.Repository.MAVEN_CENTRAL;
 import static rife.bld.dependencies.Repository.RIFE2_RELEASES;
-import static rife.bld.dependencies.Scope.*;
+import static rife.bld.dependencies.Scope.compile;
+import static rife.bld.dependencies.Scope.test;
 import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 
 public class CheckstyleOperationBuild extends Project {
     public CheckstyleOperationBuild() {
         pkg = "rife.bld.extension";
         name = "CheckstyleOperation";
-        version = version(0, 9, 0);
+        version = version(0, 9, 1, "SNAPSHOT");
 
         javaRelease = 17;
         downloadSources = true;
@@ -44,13 +45,14 @@ public class CheckstyleOperationBuild extends Project {
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)));
         scope(test)
-                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 4)))
+                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 5)))
                 .include(dependency("org.jsoup", "jsoup", version(1, 16, 2)))
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 0)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)))
                 .include(dependency("org.assertj", "assertj-core", version(3, 24, 2)));
         javadocOperation()
                 .javadocOptions()
+                .author()
                 .docLint(NO_MISSING)
                 .link("https://rife2.github.io/bld/")
                 .link("https://rife2.github.io/rife2/");
@@ -62,13 +64,24 @@ public class CheckstyleOperationBuild extends Project {
                 .artifactId("bld-checkstyle")
                 .description("bld Checkstyle Extensions")
                 .url("https://github.com/rife2/bld-checkstyle")
-                .developer(new PublishDeveloper().id("ethauvin").name("Erik C. Thauvin").email("erik@thauvin.net")
-                        .url("https://erik.thauvin.net/"))
-                .license(new PublishLicense().name("The Apache License, Version 2.0")
-                        .url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-                .scm(new PublishScm().connection("scm:git:https://github.com/rife2/bld-checkstyle.git")
-                        .developerConnection("scm:git:git@github.com:rife2/bld-checkstyle.git")
-                        .url("https://github.com/rife2/bld-checkstyle"))
+                .developer(
+                        new PublishDeveloper()
+                                .id("ethauvin")
+                                .name("Erik C. Thauvin")
+                                .email("erik@thauvin.net")
+                                .url("https://erik.thauvin.net/")
+                )
+                .license(
+                        new PublishLicense()
+                                .name("The Apache License, Version 2.0")
+                                .url("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                )
+                .scm(
+                        new PublishScm()
+                                .connection("scm:git:https://github.com/rife2/bld-checkstyle.git")
+                                .developerConnection("scm:git:git@github.com:rife2/bld-checkstyle.git")
+                                .url("https://github.com/rife2/bld-checkstyle")
+                )
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));
     }
