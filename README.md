@@ -21,7 +21,7 @@ public void checkstyle() throws Exception {
 }
 ```
 
-```
+```console
 ./bld checkstyle
 ```
 
