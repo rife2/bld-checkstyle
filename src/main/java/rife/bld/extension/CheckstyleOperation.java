@@ -45,9 +45,14 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Shows Abstract Syntax Tree(AST) branches that match given XPath query.
+     *
+     * @param xPathQuery the xPath query
+     * @return the checkstyle operation
      */
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
-        options.put("-b", xPathQuery);
+        if (isNotBlank(xPathQuery)) {
+            options.put("-b", xPathQuery);
+        }
         return this;
     }
 
@@ -55,14 +60,22 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Specifies the location of the file that defines the configuration modules. The location can either be a
      * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
      * method. A configuration file is required.
+     *
+     * @param file the file
+     * @return the checkstyle operation
      */
     public CheckstyleOperation configurationFile(String file) {
-        options.put("-c", file);
+        if (isNotBlank(file)) {
+            options.put("-c", file);
+        }
         return this;
     }
 
     /**
      * Prints all debug logging of CheckStyle utility.
+     *
+     * @param isDebug {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation debug(boolean isDebug) {
         if (isDebug) {
@@ -77,11 +90,15 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
+     * @param path one or more paths
+     * @return the checkstyle operation
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
         for (var p : path) {
-            options.put("-e", p);
+            if (isNotBlank(p)) {
+                options.put("-e", p);
+            }
         }
         return this;
     }
@@ -90,20 +107,29 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
+     * @param paths the list of paths
+     * @return the checkstyle operation
      * @see #exclude(String...)
      */
     public CheckstyleOperation exclude(Collection<String> paths) {
         for (var p : paths) {
-            options.put("-e", p);
+            if (isNotBlank(p)) {
+                options.put("-e", p);
+            }
         }
         return this;
     }
 
     /**
      * Directory/file pattern to exclude from CheckStyle. Multiple excludes are allowed.
+     *
+     * @param pattern the pattern
+     * @return the checkstyle operation
      */
     public CheckstyleOperation excludedPathPattern(String pattern) {
-        options.put("-x", pattern);
+        if (isNotBlank(pattern)) {
+            options.put("-x", pattern);
+        }
         return this;
     }
 
@@ -152,6 +178,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Allows ignored modules to be run.
+     *
+     * @param isAllowIgnoreModules {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
         if (isAllowIgnoreModules) {
@@ -165,9 +194,14 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Specifies the output format. Valid values: {@code xml}, {@code sarif}, {@code plain} for the XML, sarif and
      * default logger respectively. Defaults to {@code plain}.
+     *
+     * @param format the format
+     * @return the checkstyle operation
      */
     public CheckstyleOperation format(String format) {
-        options.put("-f", format);
+        if (isNotBlank(format)) {
+            options.put("-f", format);
+        }
         return this;
     }
 
@@ -176,6 +210,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * every violation, all violations will be caught and single suppressions xml file will be printed out.
      * Used only with the {@link #configurationFile(String) configurationFile} option. Output location can be specified
      * with the {@link #output(String) output} option.
+     *
+     * @param xPathSuppression {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
         if (xPathSuppression) {
@@ -186,10 +223,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return this;
     }
 
+    /*
+     * Determines if a string is not blank.
+     */
+    private boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
+    }
+
     /**
      * Prints Parse Tree of the Javadoc comment. The file have to contain <b>only Javadoc comment content</b>
      * without including '&#47;**' and '*&#47;' at the beginning and at the end respectively. The option cannot
      * be used other options and requires exactly one file to run on to be specified.
+     *
+     * @param isTree {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation javadocTree(boolean isTree) {
         if (isTree) {
@@ -208,51 +255,73 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * <b>ATTENTION</b>: generated result will have few queries, joined by pipe(|). Together they will match all AST nodes
      * on specified line and column. You need to choose only one and recheck that it works. Usage of all of them is also
      * ok, but might result in undesirable matching and suppress other issues.
+     *
+     * @param lineColumn the line column
+     * @return the checkstyle operation
      */
     public CheckstyleOperation lineColumn(String lineColumn) {
-        options.put("-s", lineColumn);
+        if (isNotBlank(lineColumn)) {
+            options.put("-s", lineColumn);
+        }
         return this;
     }
 
     /**
      * Sets the output file. Defaults to stdout.
+     *
+     * @param file the file
+     * @return the checkstyle operation
      */
     public CheckstyleOperation output(String file) {
-        options.put("-o", file);
+        if (isNotBlank(file)) {
+            options.put("-o", file);
+        }
         return this;
     }
 
     /**
      * Sets the property files to load.
+     *
+     * @param file the file
+     * @return the checkstyle operation
      */
     public CheckstyleOperation propertiesFile(String file) {
-        options.put("-p", file);
+        if (isNotBlank(file)) {
+            options.put("-p", file);
+        }
         return this;
     }
 
     /**
      * Specified the file(s) or folder(s) containing the source files to check.
      *
+     * @param dir one or more directories
+     * @return the checkstyle operation
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation sourceDir(String... dir) {
-        sourceDirs.addAll(Arrays.asList(dir));
+        sourceDirs.addAll(Arrays.stream(dir).filter(this::isNotBlank).toList());
         return this;
     }
 
     /**
      * Specified the file(s) or folder(s) containing the source files to check.
      *
+     * @param dirs the directories
+     * @return the checkstyle operation
      * @see #sourceDir(String...)
      */
     public CheckstyleOperation sourceDir(Collection<String> dirs) {
-        sourceDirs.addAll(dirs);
+        sourceDirs.addAll(dirs.stream().filter(this::isNotBlank).toList());
         return this;
     }
 
     /**
      * Sets the length of the tab character. Used only with the {@link #lineColumn(String) lineColum} option.
      * Default value is {@code 8}.
+     *
+     * @param length the length
+     * @return the checkstyle operation
      */
     public CheckstyleOperation tabWith(int length) {
         options.put("-w", String.valueOf(length));
@@ -262,6 +331,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Prints Abstract Syntax Tree(AST) of the checked file. The option cannot be used other options and requires
      * exactly one file to run on to be specified.
+     *
+     * @param isTree {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation tree(boolean isTree) {
         if (isTree) {
@@ -275,6 +347,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Prints Abstract Syntax Tree(AST) with comment nodes of the checked file. The option cannot be used with other
      * options and requires exactly one file to run on to be specified.
+     *
+     * @param isTree {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation treeWithComments(boolean isTree) {
         if (isTree) {
@@ -290,6 +365,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * number and columns will not be the same as it is a file due to the fact that each javadoc comment is parsed
      * separately from java file. The option cannot be used with other options and requires exactly one file to run on
      * to be specified.
+     *
+     * @param isTree {@code true} or {@code false}
+     * @return the checkstyle operation
      */
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
         if (isTree) {

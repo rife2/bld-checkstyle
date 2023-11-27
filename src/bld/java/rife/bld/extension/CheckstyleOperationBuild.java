@@ -62,7 +62,7 @@ public class CheckstyleOperationBuild extends Project {
                 .info()
                 .groupId("com.uwyn.rife2")
                 .artifactId("bld-checkstyle")
-                .description("bld Checkstyle Extensions")
+                .description("bld Checkstyle Extension")
                 .url("https://github.com/rife2/bld-checkstyle")
                 .developer(
                         new PublishDeveloper()
