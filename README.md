@@ -1,4 +1,4 @@
-# [Checkstyle](https://checkstyle.sourceforge.io/) Extension for [b<span style="color:orange">l</span>d](https://rife2.com/bldb) 
+# [Checkstyle](https://checkstyle.sourceforge.io/) Extension for [b<span style="color:orange">l</span>d](https://rife2.com/bldb)
 
 [![License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java](https://img.shields.io/badge/java-17%2B-blue)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
@@ -27,13 +27,15 @@ public void checkstyle() throws Exception {
 
 - [View Examples](https://github.com/rife2/bld-checkstyle/blob/master/examples/src/bld/java/com/example/)
 
-Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary) for all available configuration options.
+Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary)
+for all available configuration options.
 
-### Checkstyle Dependency
+## Checkstyle Dependency
 
-Don't forget to add a Checkstyle `test` dependency to your build file, as it is not provided by the extension. For example:
+Don't forget to add a Checkstyle `test` dependency to your build file, as it is
+not provided by the extension. For example:
 
 ```java
 repositories = List.of(MAVEN_CENTRAL);
-scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 4)));
-
+scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 7)));
+```
