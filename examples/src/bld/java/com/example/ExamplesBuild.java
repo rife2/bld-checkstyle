@@ -19,7 +19,7 @@ public class ExamplesBuild extends BaseProject {
         downloadSources = true;
         repositories = List.of(MAVEN_CENTRAL);
 
-        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 12, 7)));
+        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 13, 0)));
 
         testOperation().mainClass("com.example.ExamplesTest");
     }
