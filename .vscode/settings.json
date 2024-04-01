@@ -11,5 +11,6 @@
     "java.project.referencedLibraries": [
         "${HOME}/.bld/dist/bld-1.9.0.jar",
         "lib/**/*.jar"
-    ]
+    ],
+    "java.compile.nullAnalysis.mode": "automatic"
 }

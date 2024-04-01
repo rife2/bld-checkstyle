@@ -35,7 +35,7 @@ public class CheckstyleOperationBuild extends Project {
     public CheckstyleOperationBuild() {
         pkg = "rife.bld.extension";
         name = "CheckstyleOperation";
-        version = version(0, 9, 5);
+        version = version(0, 9, 6);
 
         javaRelease = 17;
         downloadSources = true;
@@ -45,7 +45,7 @@ public class CheckstyleOperationBuild extends Project {
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 9, 0)));
         scope(test)
-                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 14, 2)))
+                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 15, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 2)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 2)))
                 .include(dependency("org.assertj", "assertj-core", version(3, 25, 3)));
@@ -73,7 +73,7 @@ public class CheckstyleOperationBuild extends Project {
                 .license(
                         new PublishLicense()
                                 .name("The Apache License, Version 2.0")
-                                .url("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                                .url("https://www.apache.org/licenses/LICENSE-2.0.txt")
                 )
                 .scm(
                         new PublishScm()
