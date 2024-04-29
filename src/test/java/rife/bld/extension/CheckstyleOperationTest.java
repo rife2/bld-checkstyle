@@ -58,17 +58,22 @@ class CheckstyleOperationTest {
 
     @Test
     void exclude() {
-        var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO);
-        assertThat(op.options.get("-e")).isEqualTo(FOO);
-        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO));
-        assertThat(op.options.get("-e")).as("as list").isEqualTo(FOO);
+        var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO, BAR);
+        assertThat(op.executeConstructProcessCommandList()).contains("-e " + FOO, "-e " + BAR);
+
+        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO, BAR));
+        assertThat(op.executeConstructProcessCommandList()).as("as list").contains("-e " + FOO, "-e " + BAR);
     }
 
     @Test
-    void excludedPathPattern() {
-        var op = new CheckstyleOperation().fromProject(new Project()).excludedPathPattern(FOO);
-        assertThat(op.options.get("-x")).isEqualTo(FOO);
+    void excludeRegex() {
+        var op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(FOO, BAR);
+        assertThat(op.executeConstructProcessCommandList()).contains("-x " + FOO, "-x " + BAR);
+
+        op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(List.of(FOO, BAR));
+        assertThat(op.executeConstructProcessCommandList()).as("as list").contains("-x " + FOO, "-x " + BAR);
     }
+
 
     @Test
     void execute() throws IOException, ExitStatusException, InterruptedException {
@@ -78,7 +83,7 @@ class CheckstyleOperationTest {
                 .fromProject(new WebProject())
                 .sourceDir("src/main/java", "src/test/java")
                 .configurationFile("src/test/resources/google_checks.xml")
-                .output(tmpFile.getAbsolutePath());
+                .outputPath(tmpFile.getAbsolutePath());
         op.execute();
         assertThat(tmpFile).exists();
     }
@@ -119,15 +124,15 @@ class CheckstyleOperationTest {
                 .fromProject(new WebProject())
                 .sourceDir(List.of("src/main/java", "src/test/java"))
                 .configurationFile("src/test/resources/sun_checks.xml")
-                .output(tmpFile.getAbsolutePath());
+                .outputPath(tmpFile.getAbsolutePath());
         assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
         assertThat(tmpFile).exists();
     }
 
     @Test
     void format() {
-        var op = new CheckstyleOperation().fromProject(new Project()).format(FOO);
-        assertThat(op.options.get("-f")).isEqualTo(FOO);
+        var op = new CheckstyleOperation().fromProject(new Project()).format(CheckstyleFormatOption.XML);
+        assertThat(op.options.get("-f")).isEqualTo("xml");
     }
 
     @Test
@@ -147,14 +152,8 @@ class CheckstyleOperationTest {
     }
 
     @Test
-    void lineColumn() {
-        var op = new CheckstyleOperation().fromProject(new Project()).lineColumn(FOO);
-        assertThat(op.options.get("-s")).isEqualTo(FOO);
-    }
-
-    @Test
-    void output() {
-        var op = new CheckstyleOperation().fromProject(new Project()).output(FOO);
+    void outputPath() {
+        var op = new CheckstyleOperation().fromProject(new Project()).outputPath(FOO);
         assertThat(op.options.get("-o")).isEqualTo(FOO);
     }
 
@@ -170,6 +169,12 @@ class CheckstyleOperationTest {
         assertThat(op.sourceDirs).contains(FOO);
         op = op.sourceDir(FOO, BAR);
         assertThat(op.sourceDirs).as("foo, bar").hasSize(2).contains(FOO).contains(BAR);
+    }
+
+    @Test
+    void suppressionLineColumnNumber() {
+        var op = new CheckstyleOperation().fromProject(new Project()).suppressionLineColumnNumber(FOO + ':' + BAR);
+        assertThat(op.options.get("-s")).isEqualTo(FOO + ':' + BAR);
     }
 
     @Test
