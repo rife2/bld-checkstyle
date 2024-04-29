@@ -16,12 +16,14 @@ public class ExamplesBuild extends BaseProject {
         mainClass = "com.example.ExamplesMain";
         version = version(0, 1, 0);
 
+        javaRelease = 17;
+
         autoDownloadPurge = true;
         downloadSources = true;
         
         repositories = List.of(MAVEN_CENTRAL);
 
-        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 15, 0)));
+        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 16, 0)));
 
         testOperation().mainClass("com.example.ExamplesTest");
     }
