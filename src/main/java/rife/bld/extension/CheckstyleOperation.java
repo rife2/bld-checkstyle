@@ -38,7 +38,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * The command line options.
      */
     protected final Map<String, String> options = new ConcurrentHashMap<>();
-
     /**
      * The source files(s) or folder(s).
      */
@@ -133,8 +132,12 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         for (var r : regex) {
             if (isNotBlank(r)) {
                 excludeRegex.add(r);
+            }
         }
+
         return this;
+    }
+
     /**
      * Directory/file pattern to exclude from CheckStyle. Multiple exclude are allowed.
      *
@@ -188,6 +191,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
                 }
             }
         }
+
         if (!excludeRegex.isEmpty()) {
             for (var e : excludeRegex) {
                 if (isNotBlank(e)) {
@@ -195,6 +199,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
                 }
             }
         }
+
         args.addAll(sourceDirs);
 
         return args;
@@ -243,7 +248,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Generates to output a suppression xml to use to suppress all violations from user's config. Instead of printing
      * every violation, all violations will be caught and single suppressions xml file will be printed out.
      * Used only with the {@link #configurationFile(String) configurationFile} option. Output location can be specified
-     * with the {@link #output(String) output} option.
+     * with the {@link #outputPath(String) output} option.
      *
      * @param xPathSuppression {@code true} or {@code false}
      * @return the checkstyle operation
@@ -265,9 +270,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints Parse Tree of the Javadoc comment. The file have to contain <b>only Javadoc comment content</b>
-     * without including '&#47;**' and '*&#47;' at the beginning and at the end respectively. The option cannot
-     * be used other options and requires exactly one file to run on to be specified.
+     * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
+     * content excluding '&#47;**' and '*&#47;' at the beginning and at the end respectively. It can only be used on a
+     * single file and cannot be combined with other options.
      *
      * @param isTree {@code true} or {@code false}
      * @return the checkstyle operation
@@ -282,31 +287,14 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints xpath suppressions at the file's line and column position. Argument is the line and column number
-     * (separated by a {@code :} ) in the file that the suppression should be generated for. The option cannot be
-     * used with other options and requires exactly one file to run on to be specified.
+     * Sets the output file.
      * <p>
-     * <b>ATTENTION</b>: generated result will have few queries, joined by pipe(|). Together they will match all AST nodes
-     * on specified line and column. You need to choose only one and recheck that it works. Usage of all of them is also
-     * ok, but might result in undesirable matching and suppress other issues.
+     * Defaults to stdout.
      *
-     * @param lineColumn the line column
+     * @param file the output file
      * @return the checkstyle operation
      */
-    public CheckstyleOperation lineColumn(String lineColumn) {
-        if (isNotBlank(lineColumn)) {
-            options.put("-s", lineColumn);
-        }
-        return this;
-    }
-
-    /**
-     * Sets the output file. Defaults to stdout.
-     *
-     * @param file the file
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation output(String file) {
+    public CheckstyleOperation outputPath(String file) {
         if (isNotBlank(file)) {
             options.put("-o", file);
         }
@@ -351,7 +339,28 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Sets the length of the tab character. Used only with the {@link #lineColumn(String) lineColum} option.
+     * Prints xpath suppressions at the file's line and column position. Argument is the line and column number
+     * (separated by a {@code :} ) in the file that the suppression should be generated for. The option cannot be
+     * used with other options and requires exactly one file to run on to be specified.
+     * <p>
+     * Note that the generated result will have few queries, joined by pipe({@code |}). Together they will match all
+     * AST nodes on specified line and column. You need to choose only one and recheck that it works. Usage of all of
+     * them is also ok, but might result in undesirable matching and suppress other issues.
+     *
+     * @param lineColumnNumber the line column number
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation suppressionLineColumnNumber(String lineColumnNumber) {
+        if (isNotBlank(lineColumnNumber)) {
+            options.put("-s", lineColumnNumber);
+        }
+        return this;
+    }
+
+    /**
+     * Sets the length of the tab character. Used only with the
+     * {@link #suppressionLineColumnNumber(String) suppressionLineColumnNumber} option.
+     * <p>
      * Default value is {@code 8}.
      *
      * @param length the length
@@ -363,8 +372,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints Abstract Syntax Tree(AST) of the checked file. The option cannot be used other options and requires
-     * exactly one file to run on to be specified.
+     * This option is used to display the Abstract Syntax Tree (AST) without any comments of the specified file. It can
+     * only be used on a single file and cannot be combined with other options.
      *
      * @param isTree {@code true} or {@code false}
      * @return the checkstyle operation
@@ -379,8 +388,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints Abstract Syntax Tree(AST) with comment nodes of the checked file. The option cannot be used with other
-     * options and requires exactly one file to run on to be specified.
+     * This option is used to display the Abstract Syntax Tree (AST) with comment nodes excluding Javadoc of the
+     * specified file. It can only be used on a single file and cannot be combined with other options.
      *
      * @param isTree {@code true} or {@code false}
      * @return the checkstyle operation
@@ -395,10 +404,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints Abstract Syntax Tree(AST) with Javadoc nodes and comment nodes of the checked file. Attention that line
-     * number and columns will not be the same as it is a file due to the fact that each javadoc comment is parsed
-     * separately from java file. The option cannot be used with other options and requires exactly one file to run on
-     * to be specified.
+     * This option is used to display the Abstract Syntax Tree (AST) with Javadoc nodes of the specified file. It can
+     * only be used on a single file and cannot be combined with other options.
      *
      * @param isTree {@code true} or {@code false}
      * @return the checkstyle operation
