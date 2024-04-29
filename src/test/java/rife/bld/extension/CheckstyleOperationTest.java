@@ -59,19 +59,21 @@ class CheckstyleOperationTest {
     @Test
     void exclude() {
         var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO, BAR);
-        assertThat(op.executeConstructProcessCommandList()).contains("-e " + FOO, "-e " + BAR);
+        var e = "-e ";
+        assertThat(op.executeConstructProcessCommandList()).contains(e + FOO, e + BAR);
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO, BAR));
-        assertThat(op.executeConstructProcessCommandList()).as("as list").contains("-e " + FOO, "-e " + BAR);
+        assertThat(op.executeConstructProcessCommandList()).as("as list").contains(e + FOO, e + BAR);
     }
 
     @Test
     void excludeRegex() {
         var op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(FOO, BAR);
-        assertThat(op.executeConstructProcessCommandList()).contains("-x " + FOO, "-x " + BAR);
+        var x = "-x ";
+        assertThat(op.executeConstructProcessCommandList()).contains(x + FOO, x + BAR);
 
         op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(List.of(FOO, BAR));
-        assertThat(op.executeConstructProcessCommandList()).as("as list").contains("-x " + FOO, "-x " + BAR);
+        assertThat(op.executeConstructProcessCommandList()).as("as list").contains(x + FOO, x + BAR);
     }
 
 
