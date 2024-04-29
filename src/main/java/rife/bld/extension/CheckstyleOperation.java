@@ -32,6 +32,8 @@ import java.util.logging.Logger;
  */
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
     private static final Logger LOGGER = Logger.getLogger(CheckstyleOperation.class.getName());
+    protected final List<String> exclude = new ArrayList<>();
+    protected final List<String> excludeRegex = new ArrayList<>();
     /**
      * The command line options.
      */
@@ -97,7 +99,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     public CheckstyleOperation exclude(String... path) {
         for (var p : path) {
             if (isNotBlank(p)) {
-                options.put("-e", p);
+                exclude.add(p);
             }
         }
         return this;
@@ -107,29 +109,46 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
-     * @param paths the list of paths
+     * @param paths the paths
      * @return the checkstyle operation
      * @see #exclude(String...)
      */
     public CheckstyleOperation exclude(Collection<String> paths) {
         for (var p : paths) {
             if (isNotBlank(p)) {
-                options.put("-e", p);
+                exclude.add(p);
             }
         }
         return this;
     }
 
     /**
-     * Directory/file pattern to exclude from CheckStyle. Multiple excludes are allowed.
+     * Directory/file pattern to exclude from CheckStyle. Multiple exclude are allowed.
      *
-     * @param pattern the pattern
+     * @param regex the pattern to exclude
      * @return the checkstyle operation
+     * @see #excludeRegex(Collection)
      */
-    public CheckstyleOperation excludedPathPattern(String pattern) {
-        if (isNotBlank(pattern)) {
-            options.put("-x", pattern);
+    public CheckstyleOperation excludeRegex(String... regex) {
+        for (var r : regex) {
+            if (isNotBlank(r)) {
+                excludeRegex.add(r);
         }
+        return this;
+    /**
+     * Directory/file pattern to exclude from CheckStyle. Multiple exclude are allowed.
+     *
+     * @param regex the patterns to exclude
+     * @return the checkstyle operation
+     * @see #excludeRegex(String...)
+     */
+    public CheckstyleOperation excludeRegex(Collection<String> regex) {
+        for (var r : regex) {
+            if (isNotBlank(r)) {
+                excludeRegex.add(r);
+            }
+        }
+
         return this;
     }
 
@@ -162,6 +181,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             }
         });
 
+        if (!exclude.isEmpty()) {
+            for (var e : exclude) {
+                if (isNotBlank(e)) {
+                    args.add("-e " + e);
+                }
+            }
+        }
+        if (!excludeRegex.isEmpty()) {
+            for (var e : excludeRegex) {
+                if (isNotBlank(e)) {
+                    args.add("-x " + e);
+                }
+            }
+        }
         args.addAll(sourceDirs);
 
         return args;
