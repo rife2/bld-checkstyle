@@ -225,16 +225,17 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specifies the output format. Valid values: {@code xml}, {@code sarif}, {@code plain} for the XML, sarif and
-     * default logger respectively. Defaults to {@code plain}.
+     * Specifies the output format. Valid values: {@link CheckstyleFormatOption#XML},
+     * {@link CheckstyleFormatOption#SARIF}, {@link CheckstyleFormatOption#PLAIN} for the XML, sarif and default logger
+     * respectively.
+     * <p>
+     * Defaults to {@link CheckstyleFormatOption#PLAIN}.
      *
-     * @param format the format
+     * @param format the output format
      * @return the checkstyle operation
      */
-    public CheckstyleOperation format(String format) {
-        if (isNotBlank(format)) {
-            options.put("-f", format);
-        }
+    public CheckstyleOperation format(CheckstyleFormatOption format) {
+        options.put("-f", format.label.toLowerCase());
         return this;
     }
 
