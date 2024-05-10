@@ -76,7 +76,6 @@ class CheckstyleOperationTest {
         assertThat(op.executeConstructProcessCommandList()).as("as list").contains(x + FOO, x + BAR);
     }
 
-
     @Test
     void execute() throws IOException, ExitStatusException, InterruptedException {
         var tmpFile = File.createTempFile("checkstyle-google", ".txt");
