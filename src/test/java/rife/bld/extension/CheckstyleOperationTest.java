@@ -43,6 +43,59 @@ class CheckstyleOperationTest {
     }
 
     @Test
+    void checkAllParameters() {
+        var params = List.of(
+                "-b",
+                "-c",
+                "-d",
+                "-e",
+                "-E",
+                "-f",
+                "-g",
+                "-j",
+                "-J",
+                "-o",
+                "-p",
+                "-s",
+                "-t",
+                "-T",
+                "-w",
+                "-x"
+        );
+
+        var args = new CheckstyleOperation()
+                .fromProject(new Project())
+                .branchMatchingXpath("xpath")
+                .configurationFile("config")
+                .debug(true)
+                .exclude("path")
+                .excludeRegex("regex")
+                .executeIgnoredModules(true)
+                .format(CheckstyleFormatOption.XML)
+                .generateXpathSuppression(true)
+                .javadocTree(true)
+                .outputPath("optionPath")
+                .propertiesFile("properties")
+                .suppressionLineColumnNumber("12")
+                .tabWith(1)
+                .tree(true)
+                .treeWithComments(true)
+                .treeWithJavadoc(true)
+                .executeConstructProcessCommandList();
+
+        for (var p : params) {
+            var found = false;
+            for (var a : args) {
+                if (a.startsWith(p)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).as(p + " not found.").isTrue();
+        }
+    }
+
+    @Test
     void configurationFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).configurationFile(FOO);
         assertThat(op.options.get("-c")).isEqualTo(FOO);
