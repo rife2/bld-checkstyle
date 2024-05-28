@@ -24,6 +24,8 @@ import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,25 +45,10 @@ class CheckstyleOperationTest {
     }
 
     @Test
-    void checkAllParameters() {
-        var params = List.of(
-                "-b",
-                "-c",
-                "-d",
-                "-e",
-                "-E",
-                "-f",
-                "-g",
-                "-j",
-                "-J",
-                "-o",
-                "-p",
-                "-s",
-                "-t",
-                "-T",
-                "-w",
-                "-x"
-        );
+    void checkAllParameters() throws IOException {
+        var params = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
+
+        assertThat(params).isNotEmpty();
 
         var args = new CheckstyleOperation()
                 .fromProject(new Project())
