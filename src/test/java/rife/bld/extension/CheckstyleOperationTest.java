@@ -46,11 +46,11 @@ class CheckstyleOperationTest {
 
     @Test
     void checkAllParameters() throws IOException {
-        var params = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
+        var args = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
 
-        assertThat(params).isNotEmpty();
+        assertThat(args).isNotEmpty();
 
-        var args = new CheckstyleOperation()
+        var params = new CheckstyleOperation()
                 .fromProject(new Project())
                 .branchMatchingXpath("xpath")
                 .configurationFile("config")
@@ -70,9 +70,9 @@ class CheckstyleOperationTest {
                 .treeWithJavadoc(true)
                 .executeConstructProcessCommandList();
 
-        for (var p : params) {
+        for (var p : args) {
             var found = false;
-            for (var a : args) {
+            for (var a : params) {
                 if (a.startsWith(p)) {
                     found = true;
                     break;
