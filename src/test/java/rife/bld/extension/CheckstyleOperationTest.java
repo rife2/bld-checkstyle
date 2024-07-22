@@ -16,10 +16,12 @@
 
 package rife.bld.extension;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.WebProject;
+import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
@@ -27,21 +29,38 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 class CheckstyleOperationTest {
+    public static final String SRC_MAIN_JAVA = "src/main/java";
+    public static final String SRC_TEST_JAVA = "src/test/java";
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
     private static final String REMOVE = "remove";
 
+    @BeforeAll
+    static void beforeAll() {
+        var level = Level.ALL;
+        var logger = Logger.getLogger("rife.bld.extension");
+        var consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(level);
+        logger.addHandler(consoleHandler);
+        logger.setLevel(level);
+        logger.setUseParentHandlers(false);
+    }
+
+
     @Test
     void branchMatchingXpath() {
         var op = new CheckstyleOperation().fromProject(new Project()).branchMatchingXpath(FOO);
-        assertThat(op.options.get("-b")).isEqualTo(FOO);
+        assertThat(op.options().get("-b")).isEqualTo(FOO);
     }
 
     @Test
@@ -53,16 +72,16 @@ class CheckstyleOperationTest {
         var params = new CheckstyleOperation()
                 .fromProject(new Project())
                 .branchMatchingXpath("xpath")
-                .configurationFile("config")
                 .debug(true)
-                .exclude("path")
+                .configurationFile(new File("config"))
+                .exclude(SRC_MAIN_JAVA)
                 .excludeRegex("regex")
                 .executeIgnoredModules(true)
-                .format(CheckstyleFormatOption.XML)
+                .format(OutputFormat.XML)
                 .generateXpathSuppression(true)
                 .javadocTree(true)
-                .outputPath("optionPath")
-                .propertiesFile("properties")
+                .outputPath(new File("optionPath"))
+                .propertiesFile(new File("properties"))
                 .suppressionLineColumnNumber("12")
                 .tabWith(1)
                 .tree(true)
@@ -85,25 +104,33 @@ class CheckstyleOperationTest {
     @Test
     void configurationFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).configurationFile(FOO);
-        assertThat(op.options.get("-c")).isEqualTo(FOO);
+        assertThat(op.options().get("-c")).isEqualTo(FOO);
     }
 
     @Test
     void debug() {
         var op = new CheckstyleOperation().fromProject(new Project()).debug(true);
-        assertThat(op.options.containsKey("-d")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-d")).as(ADD).isTrue();
         op = op.debug(false);
-        assertThat(op.options.containsKey("-d")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-d")).as(REMOVE).isFalse();
     }
 
     @Test
     void exclude() {
-        var op = new CheckstyleOperation().fromProject(new Project()).exclude(FOO, BAR);
+        var foo = new File(SRC_MAIN_JAVA);
+        var bar = new File(SRC_TEST_JAVA);
+        var op = new CheckstyleOperation().fromProject(new Project()).exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
         var e = "-e ";
-        assertThat(op.executeConstructProcessCommandList()).contains(e + FOO, e + BAR);
+        assertThat(op.executeConstructProcessCommandList()).as("strings")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
-        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(FOO, BAR));
-        assertThat(op.executeConstructProcessCommandList()).as("as list").contains(e + FOO, e + BAR);
+        op = new CheckstyleOperation().fromProject(new Project()).exclude(foo, bar);
+        assertThat(op.executeConstructProcessCommandList()).as("files")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+
+        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(foo, bar));
+        assertThat(op.executeConstructProcessCommandList()).as("list")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
     }
 
     @Test
@@ -122,11 +149,17 @@ class CheckstyleOperationTest {
         tmpFile.deleteOnExit();
         var op = new CheckstyleOperation()
                 .fromProject(new WebProject())
-                .sourceDir("src/main/java", "src/test/java")
+                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
                 .configurationFile("src/test/resources/google_checks.xml")
                 .outputPath(tmpFile.getAbsolutePath());
         op.execute();
         assertThat(tmpFile).exists();
+    }
+
+    @Test
+    void executeNoProject() {
+        var op = new CheckstyleOperation();
+        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
     }
 
     @Test
@@ -137,7 +170,7 @@ class CheckstyleOperationTest {
                 .propertiesFile("config/checkstyle.properties")
                 .debug(true)
                 .executeIgnoredModules(true)
-                .sourceDir("src/main/java", "src/test/java");
+                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA);
         assertThat(String.join(" ", op.executeConstructProcessCommandList()))
                 .startsWith("java -cp ")
                 .endsWith(
@@ -146,15 +179,16 @@ class CheckstyleOperationTest {
                                 "-b xpath " +
                                 "-c config/checkstyle.xml " +
                                 "-d -E " +
-                                "src/main/java src/test/java");
+                                new File(SRC_MAIN_JAVA).getAbsolutePath() + " " +
+                                new File(SRC_TEST_JAVA).getAbsolutePath());
     }
 
     @Test
     void executeIgnoredModules() {
         var op = new CheckstyleOperation().fromProject(new Project()).executeIgnoredModules(true);
-        assertThat(op.options.containsKey("-E")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-E")).as(ADD).isTrue();
         op = op.executeIgnoredModules(false);
-        assertThat(op.options.containsKey("-E")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-E")).as(REMOVE).isFalse();
     }
 
     @Test
@@ -163,7 +197,7 @@ class CheckstyleOperationTest {
         tmpFile.deleteOnExit();
         var op = new CheckstyleOperation()
                 .fromProject(new WebProject())
-                .sourceDir(List.of("src/main/java", "src/test/java"))
+                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
                 .configurationFile("src/test/resources/sun_checks.xml")
                 .outputPath(tmpFile.getAbsolutePath());
         assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
@@ -172,79 +206,88 @@ class CheckstyleOperationTest {
 
     @Test
     void format() {
-        var op = new CheckstyleOperation().fromProject(new Project()).format(CheckstyleFormatOption.XML);
-        assertThat(op.options.get("-f")).isEqualTo("xml");
+        var op = new CheckstyleOperation().fromProject(new Project()).format(OutputFormat.XML);
+        assertThat(op.options().get("-f")).isEqualTo("xml");
     }
 
     @Test
     void generateXpathSuppression() {
         var op = new CheckstyleOperation().fromProject(new Project()).generateXpathSuppression(true);
-        assertThat(op.options.containsKey("-g")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-g")).as(ADD).isTrue();
         op = op.generateXpathSuppression(false);
-        assertThat(op.options.containsKey("-g")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-g")).as(REMOVE).isFalse();
     }
 
     @Test
     void javadocTree() {
         var op = new CheckstyleOperation().fromProject(new Project()).javadocTree(true);
-        assertThat(op.options.containsKey("-j")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-j")).as(ADD).isTrue();
         op = op.javadocTree(false);
-        assertThat(op.options.containsKey("-j")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-j")).as(REMOVE).isFalse();
     }
 
     @Test
     void outputPath() {
         var op = new CheckstyleOperation().fromProject(new Project()).outputPath(FOO);
-        assertThat(op.options.get("-o")).isEqualTo(FOO);
+        assertThat(op.options().get("-o")).isEqualTo(FOO);
     }
 
     @Test
     void propertiesFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).propertiesFile(FOO);
-        assertThat(op.options.get("-p")).isEqualTo(FOO);
+        assertThat(op.options().get("-p")).isEqualTo(FOO);
     }
 
     @Test
     void sourceDir() {
+        var foo = new File(FOO);
+        var bar = new File(BAR);
+
         var op = new CheckstyleOperation().fromProject(new Project()).sourceDir(FOO);
-        assertThat(op.sourceDirs).contains(FOO);
-        op = op.sourceDir(FOO, BAR);
-        assertThat(op.sourceDirs).as("foo, bar").hasSize(2).contains(FOO).contains(BAR);
+        assertThat(op.sourceDir()).contains(foo);
+
+        op = op.sourceDir(foo, bar);
+        assertThat(op.sourceDir()).as("foo, bar").hasSize(2)
+                .contains(foo).contains(bar);
+
+        op = op.sourceDir(List.of(foo, bar));
+        assertThat(op.sourceDir()).as("List.of(foo, bar)").hasSize(2)
+                .contains(foo).contains(bar);
     }
 
     @Test
     void suppressionLineColumnNumber() {
         var op = new CheckstyleOperation().fromProject(new Project()).suppressionLineColumnNumber(FOO + ':' + BAR);
-        assertThat(op.options.get("-s")).isEqualTo(FOO + ':' + BAR);
+        assertThat(op.options().get("-s")).isEqualTo(FOO + ':' + BAR);
     }
 
     @Test
     void tabWith() {
         var op = new CheckstyleOperation().fromProject(new Project()).tabWith(9);
-        assertThat(op.options.get("-w")).isEqualTo("9");
+        assertThat(op.options().get("-w")).isEqualTo("9");
     }
 
     @Test
     void tree() {
         var op = new CheckstyleOperation().fromProject(new Project()).tree(true);
-        assertThat(op.options.containsKey("-t")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-t")).as(ADD).isTrue();
         op = op.tree(false);
-        assertThat(op.options.containsKey("-t")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-t")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithComments() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithComments(true);
-        assertThat(op.options.containsKey("-T")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-T")).as(ADD).isTrue();
         op = op.treeWithComments(false);
-        assertThat(op.options.containsKey("-T")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-T")).as(REMOVE).isFalse();
     }
 
     @Test
     void treeWithJavadoc() {
         var op = new CheckstyleOperation().fromProject(new Project()).treeWithJavadoc(true);
-        assertThat(op.options.containsKey("-J")).as(ADD).isTrue();
+        assertThat(op.options().containsKey("-J")).as(ADD).isTrue();
         op = op.treeWithJavadoc(false);
-        assertThat(op.options.containsKey("-J")).as(REMOVE).isFalse();
+        assertThat(op.options().containsKey("-J")).as(REMOVE).isFalse();
     }
 }

@@ -1,4 +1,8 @@
 <project version="4">
+  <component name="EntryPointsManager">
+    <pattern value="com.example.ExamplesBuild" method="checkstyle" />
+    <pattern value="com.example.ExamplesBuild" />
+  </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">
       <list>

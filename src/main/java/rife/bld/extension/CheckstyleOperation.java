@@ -17,11 +17,15 @@
 package rife.bld.extension;
 
 import rife.bld.BaseProject;
+import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.operations.AbstractProcessOperation;
+import rife.bld.operations.exceptions.ExitStatusException;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,16 +36,11 @@ import java.util.logging.Logger;
  */
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
     private static final Logger LOGGER = Logger.getLogger(CheckstyleOperation.class.getName());
-    protected final List<String> exclude = new ArrayList<>();
-    protected final List<String> excludeRegex = new ArrayList<>();
-    /**
-     * The command line options.
-     */
-    protected final Map<String, String> options = new ConcurrentHashMap<>();
-    /**
-     * The source files(s) or folder(s).
-     */
-    protected final Set<String> sourceDirs = new TreeSet<>();
+    private final Collection<String> excludeRegex_ = new ArrayList<>();
+    private final Collection<File> exclude_ = new ArrayList<>();
+    private final Map<String, String> options_ = new ConcurrentHashMap<>();
+    private final Set<File> sourceDir_ = new TreeSet<>();
+
     private BaseProject project_;
 
     /**
@@ -52,7 +51,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
         if (isNotBlank(xPathQuery)) {
-            options.put("-b", xPathQuery);
+            options_.put("-b", xPathQuery);
         }
         return this;
     }
@@ -67,9 +66,21 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation configurationFile(String file) {
         if (isNotBlank(file)) {
-            options.put("-c", file);
+            options_.put("-c", file);
         }
         return this;
+    }
+
+    /**
+     * Specifies the location of the file that defines the configuration modules. The location can either be a
+     * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
+     * method. A configuration file is required.
+     *
+     * @param file the file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation configurationFile(File file) {
+        return configurationFile(file.getAbsolutePath());
     }
 
     /**
@@ -80,9 +91,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation debug(boolean isDebug) {
         if (isDebug) {
-            options.put("-d", "");
+            options_.put("-d", "");
         } else {
-            options.remove("-d");
+            options_.remove("-d");
         }
         return this;
     }
@@ -96,11 +107,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
-        for (var p : path) {
-            if (isNotBlank(p)) {
-                exclude.add(p);
-            }
-        }
+        exclude_.addAll(Arrays.stream(path).map(File::new).toList());
+        return this;
+    }
+
+    /**
+     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * path. Multiple excludes are allowed.
+     *
+     * @param path one or more paths
+     * @return the checkstyle operation
+     * @see #sourceDir(Collection)
+     */
+    public CheckstyleOperation exclude(File... path) {
+        exclude_.addAll(List.of(path));
         return this;
     }
 
@@ -112,12 +132,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      * @see #exclude(String...)
      */
-    public CheckstyleOperation exclude(Collection<String> paths) {
-        for (var p : paths) {
-            if (isNotBlank(p)) {
-                exclude.add(p);
-            }
-        }
+    public CheckstyleOperation exclude(Collection<File> paths) {
+        exclude_.addAll(paths);
         return this;
     }
 
@@ -129,12 +145,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeRegex(Collection)
      */
     public CheckstyleOperation excludeRegex(String... regex) {
-        for (var r : regex) {
-            if (isNotBlank(r)) {
-                excludeRegex.add(r);
-            }
-        }
-
+        excludeRegex_.addAll(List.of(regex));
         return this;
     }
 
@@ -146,13 +157,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeRegex(String...)
      */
     public CheckstyleOperation excludeRegex(Collection<String> regex) {
-        for (var r : regex) {
-            if (isNotBlank(r)) {
-                excludeRegex.add(r);
-            }
-        }
-
+        excludeRegex_.addAll(regex);
         return this;
+    }
+
+    @Override
+    public void execute() throws IOException, InterruptedException, ExitStatusException {
+        if (project_ == null) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("A project must be specified.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else {
+            super.execute();
+        }
     }
 
     /**
@@ -161,46 +179,50 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     @Override
     protected List<String> executeConstructProcessCommandList() {
-        if (project_ == null) {
-            LOGGER.severe("A project must be specified.");
-        } else if (sourceDirs.isEmpty()) {
-            sourceDirs.add(project_.srcMainJavaDirectory().getPath());
-            sourceDirs.add(project_.srcTestJavaDirectory().getPath());
-        }
-
         final List<String> args = new ArrayList<>();
-        args.add(javaTool());
 
-        args.add("-cp");
-        args.add(String.format("%s:%s:%s:%s", Path.of(project_.libTestDirectory().getPath(), "*"),
-                Path.of(project_.libCompileDirectory().getPath(), "*"), project_.buildMainDirectory(),
-                project_.buildTestDirectory()));
-        args.add("com.puppycrawl.tools.checkstyle.Main");
-
-        options.forEach((k, v) -> {
-            args.add(k);
-            if (!v.isEmpty()) {
-                args.add(v);
+        if (project_ != null) {
+            if (sourceDir_.isEmpty()) {
+                sourceDir_.add(project_.srcMainJavaDirectory());
+                sourceDir_.add(project_.srcTestJavaDirectory());
             }
-        });
+            args.add(javaTool());
 
-        if (!exclude.isEmpty()) {
-            for (var e : exclude) {
-                if (isNotBlank(e)) {
-                    args.add("-e " + e);
+            args.add("-cp");
+            args.add(String.format("%s:%s:%s:%s", new File(project_.libTestDirectory(), "*"),
+                    new File(project_.libCompileDirectory(), "*"), project_.buildMainDirectory(),
+                    project_.buildTestDirectory()));
+            args.add("com.puppycrawl.tools.checkstyle.Main");
+
+            options_.forEach((k, v) -> {
+                args.add(k);
+                if (!v.isEmpty()) {
+                    args.add(v);
+                }
+            });
+
+            if (!exclude_.isEmpty()) {
+                for (var e : exclude_) {
+                    if (e.exists()) {
+                        args.add("-e " + e.getAbsolutePath());
+                    }
                 }
             }
-        }
 
-        if (!excludeRegex.isEmpty()) {
-            for (var e : excludeRegex) {
-                if (isNotBlank(e)) {
-                    args.add("-x " + e);
+            if (!excludeRegex_.isEmpty()) {
+                for (var e : excludeRegex_) {
+                    if (isNotBlank(e)) {
+                        args.add("-x " + e);
+                    }
                 }
             }
-        }
 
-        args.addAll(sourceDirs);
+            args.addAll(sourceDir_.stream().map(File::getAbsolutePath).toList());
+
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.log(Level.FINE, String.join(" ", args));
+            }
+        }
 
         return args;
     }
@@ -222,25 +244,25 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
         if (isAllowIgnoreModules) {
-            options.put("-E", "");
+            options_.put("-E", "");
         } else {
-            options.remove("-E");
+            options_.remove("-E");
         }
         return this;
     }
 
     /**
-     * Specifies the output format. Valid values: {@link CheckstyleFormatOption#XML},
-     * {@link CheckstyleFormatOption#SARIF}, {@link CheckstyleFormatOption#PLAIN} for the XML, sarif and default logger
+     * Specifies the output format. Valid values: {@link OutputFormat#XML},
+     * {@link OutputFormat#SARIF}, {@link OutputFormat#PLAIN} for the XML, sarif and default logger
      * respectively.
      * <p>
-     * Defaults to {@link CheckstyleFormatOption#PLAIN}.
+     * Defaults to {@link OutputFormat#PLAIN}.
      *
      * @param format the output format
      * @return the checkstyle operation
      */
-    public CheckstyleOperation format(CheckstyleFormatOption format) {
-        options.put("-f", format.label.toLowerCase());
+    public CheckstyleOperation format(OutputFormat format) {
+        options_.put("-f", format.label.toLowerCase());
         return this;
     }
 
@@ -255,9 +277,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
         if (xPathSuppression) {
-            options.put("-g", "");
+            options_.put("-g", "");
         } else {
-            options.remove("-g");
+            options_.remove("-g");
         }
         return this;
     }
@@ -279,11 +301,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation javadocTree(boolean isTree) {
         if (isTree) {
-            options.put("-j", "");
+            options_.put("-j", "");
         } else {
-            options.remove("-j");
+            options_.remove("-j");
         }
         return this;
+    }
+
+    /**
+     * Returns the command line options.
+     *
+     * @return the command line options
+     */
+    public Map<String, String> options() {
+        return options_;
     }
 
     /**
@@ -296,9 +327,21 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation outputPath(String file) {
         if (isNotBlank(file)) {
-            options.put("-o", file);
+            options_.put("-o", file);
         }
         return this;
+    }
+
+    /**
+     * Sets the output file.
+     * <p>
+     * Defaults to stdout.
+     *
+     * @param file the output file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation outputPath(File file) {
+        return outputPath(file.getAbsolutePath());
     }
 
     /**
@@ -309,9 +352,19 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation propertiesFile(String file) {
         if (isNotBlank(file)) {
-            options.put("-p", file);
+            options_.put("-p", file);
         }
         return this;
+    }
+
+    /**
+     * Sets the property files to load.
+     *
+     * @param file the file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation propertiesFile(File file) {
+        return propertiesFile(file.getAbsolutePath());
     }
 
     /**
@@ -322,7 +375,19 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation sourceDir(String... dir) {
-        sourceDirs.addAll(Arrays.stream(dir).filter(this::isNotBlank).toList());
+        sourceDir_.addAll(Arrays.stream(dir).map(File::new).toList());
+        return this;
+    }
+
+    /**
+     * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @param dir one or more directories
+     * @return the checkstyle operation
+     * @see #sourceDir(Collection)
+     */
+    public CheckstyleOperation sourceDir(File... dir) {
+        sourceDir_.addAll(List.of(dir));
         return this;
     }
 
@@ -333,9 +398,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      * @see #sourceDir(String...)
      */
-    public CheckstyleOperation sourceDir(Collection<String> dirs) {
-        sourceDirs.addAll(dirs.stream().filter(this::isNotBlank).toList());
+    public CheckstyleOperation sourceDir(Collection<File> dirs) {
+        sourceDir_.addAll(dirs);
         return this;
+    }
+
+    /**
+     * Returns the file(s) or folders(s) containing the sources files to check
+     *
+     * @return the files or directories
+     */
+    public Set<File> sourceDir() {
+        return sourceDir_;
     }
 
     /**
@@ -352,7 +426,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation suppressionLineColumnNumber(String lineColumnNumber) {
         if (isNotBlank(lineColumnNumber)) {
-            options.put("-s", lineColumnNumber);
+            options_.put("-s", lineColumnNumber);
         }
         return this;
     }
@@ -367,7 +441,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation tabWith(int length) {
-        options.put("-w", String.valueOf(length));
+        options_.put("-w", String.valueOf(length));
         return this;
     }
 
@@ -380,9 +454,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation tree(boolean isTree) {
         if (isTree) {
-            options.put("-t", "");
+            options_.put("-t", "");
         } else {
-            options.remove("-t");
+            options_.remove("-t");
         }
         return this;
     }
@@ -396,9 +470,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation treeWithComments(boolean isTree) {
         if (isTree) {
-            options.put("-T", "");
+            options_.put("-T", "");
         } else {
-            options.remove("-T");
+            options_.remove("-T");
         }
         return this;
     }
@@ -412,9 +486,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
         if (isTree) {
-            options.put("-J", "");
+            options_.put("-J", "");
         } else {
-            options.remove("-J");
+            options_.remove("-J");
         }
         return this;
     }
