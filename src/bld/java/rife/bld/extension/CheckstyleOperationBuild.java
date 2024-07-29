@@ -22,7 +22,6 @@ import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
-import java.io.IOException;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.*;
@@ -42,7 +41,7 @@ public class CheckstyleOperationBuild extends Project {
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
         scope(compile)
-                .include(dependency("com.uwyn.rife2", "bld", version(2, 0, 0, "SNAPSHOT")));
+                .include(dependency("com.uwyn.rife2", "bld", version(2, 0, 1)));
         scope(test)
                 .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 17, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 3)))
@@ -86,13 +85,6 @@ public class CheckstyleOperationBuild extends Project {
 
     public static void main(String[] args) {
         new CheckstyleOperationBuild().start(args);
-    }
-
-    @BuildCommand(summary = "Generates JaCoCo Reports")
-    public void jacoco() throws Exception {
-        new JacocoReportOperation()
-                .fromProject(this)
-                .execute();
     }
 
     @BuildCommand(summary = "Runs PMD analysis")
