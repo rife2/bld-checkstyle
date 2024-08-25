@@ -284,13 +284,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return this;
     }
 
-    /*
-     * Determines if a string is not blank.
-     */
-    private boolean isNotBlank(String s) {
-        return s != null && !s.isBlank();
-    }
-
     /**
      * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
      * content excluding '&#47;**' and '*&#47;' at the beginning and at the end respectively. It can only be used on a
@@ -491,5 +484,12 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             options_.remove("-J");
         }
         return this;
+    }
+
+    /*
+     * Determines if a string is not blank.
+     */
+    private boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
     }
 }

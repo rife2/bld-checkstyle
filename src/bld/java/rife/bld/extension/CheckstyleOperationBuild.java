@@ -43,9 +43,9 @@ public class CheckstyleOperationBuild extends Project {
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 0, 1)));
         scope(test)
-                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 17, 0)))
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 3)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 3)))
+                .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 18, 0)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 0)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 0)))
                 .include(dependency("org.assertj", "assertj-core", version(3, 26, 3)));
         javadocOperation()
                 .javadocOptions()

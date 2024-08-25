@@ -157,12 +157,6 @@ class CheckstyleOperationTest {
     }
 
     @Test
-    void executeNoProject() {
-        var op = new CheckstyleOperation();
-        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
-    }
-
-    @Test
     void executeConstructProcessCommandList() {
         var op = new CheckstyleOperation().fromProject(new BaseProject())
                 .configurationFile("config/checkstyle.xml")
@@ -189,6 +183,12 @@ class CheckstyleOperationTest {
         assertThat(op.options().containsKey("-E")).as(ADD).isTrue();
         op = op.executeIgnoredModules(false);
         assertThat(op.options().containsKey("-E")).as(REMOVE).isFalse();
+    }
+
+    @Test
+    void executeNoProject() {
+        var op = new CheckstyleOperation();
+        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
     }
 
     @Test
