@@ -27,6 +27,7 @@ import rife.bld.operations.exceptions.ExitStatusException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -131,6 +132,10 @@ class CheckstyleOperationTest {
         op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(foo, bar));
         assertThat(op.executeConstructProcessCommandList()).as("list")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+
+        op = new CheckstyleOperation().fromProject(new Project()).exclude(foo.toPath(), bar.toPath());
+        assertThat(op.executeConstructProcessCommandList()).as("list")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
     }
 
     @Test
@@ -150,8 +155,8 @@ class CheckstyleOperationTest {
         var op = new CheckstyleOperation()
                 .fromProject(new WebProject())
                 .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
-                .configurationFile("src/test/resources/google_checks.xml")
-                .outputPath(tmpFile.getAbsolutePath());
+                .configurationFile(Path.of("src/test/resources/google_checks.xml"))
+                .outputPath(tmpFile.toPath());
         op.execute();
         assertThat(tmpFile).exists();
     }
@@ -236,6 +241,10 @@ class CheckstyleOperationTest {
     void propertiesFile() {
         var op = new CheckstyleOperation().fromProject(new Project()).propertiesFile(FOO);
         assertThat(op.options().get("-p")).isEqualTo(FOO);
+
+        var fooPath = Path.of(FOO);
+        op = op.propertiesFile(fooPath);
+        assertThat(op.options().get("-p")).isEqualTo(fooPath.toFile().getAbsolutePath());
     }
 
     @Test
@@ -249,11 +258,20 @@ class CheckstyleOperationTest {
         op = op.sourceDir(foo, bar);
         assertThat(op.sourceDir()).as("foo, bar").hasSize(2)
                 .contains(foo).contains(bar);
+        op.sourceDir().clear();
 
         op = op.sourceDir(List.of(foo, bar));
         assertThat(op.sourceDir()).as("List.of(foo, bar)").hasSize(2)
                 .contains(foo).contains(bar);
+        op.sourceDir().clear();
+
+        op = op.sourceDir(foo.toPath(), bar.toPath());
+        assertThat(op.sourceDir()).as("foo.toPath(), bar.toPath()").hasSize(2)
+                .contains(foo).contains(bar);
+        op.sourceDir().clear();
+
     }
+
 
     @Test
     void suppressionLineColumnNumber() {

@@ -23,6 +23,7 @@ import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -84,6 +85,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
+     * Specifies the location of the file that defines the configuration modules. The location can either be a
+     * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
+     * method. A configuration file is required.
+     *
+     * @param file the file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation configurationFile(Path file) {
+        return configurationFile(file.toFile());
+    }
+
+    /**
      * Prints all debug logging of CheckStyle utility.
      *
      * @param isDebug {@code true} or {@code false}
@@ -107,8 +120,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
-        exclude_.addAll(Arrays.stream(path).map(File::new).toList());
-        return this;
+        return excludeStrings(List.of(path));
     }
 
     /**
@@ -120,8 +132,19 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation exclude(File... path) {
-        exclude_.addAll(List.of(path));
-        return this;
+        return exclude(List.of(path));
+    }
+
+    /**
+     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * path. Multiple excludes are allowed.
+     *
+     * @param path one or more paths
+     * @return the checkstyle operation
+     * @see #sourceDir(Collection)
+     */
+    public CheckstyleOperation exclude(Path... path) {
+        return excludePaths(List.of(path));
     }
 
     /**
@@ -135,6 +158,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     public CheckstyleOperation exclude(Collection<File> paths) {
         exclude_.addAll(paths);
         return this;
+    }
+
+    /**
+     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * path. Multiple excludes are allowed.
+     *
+     * @param paths the paths
+     * @return the checkstyle operation
+     * @see #exclude(String...)
+     */
+    public CheckstyleOperation excludePaths(Collection<Path> paths) {
+        return exclude(paths.stream().map(Path::toFile).toList());
     }
 
     /**
@@ -158,6 +193,19 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation excludeRegex(Collection<String> regex) {
         excludeRegex_.addAll(regex);
+        return this;
+    }
+
+    /**
+     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * path. Multiple excludes are allowed.
+     *
+     * @param paths the paths
+     * @return the checkstyle operation
+     * @see #exclude(String...)
+     */
+    public CheckstyleOperation excludeStrings(Collection<String> paths) {
+        exclude_.addAll(paths.stream().map(File::new).toList());
         return this;
     }
 
@@ -284,6 +332,13 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return this;
     }
 
+    /*
+     * Determines if a string is not blank.
+     */
+    private boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
+    }
+
     /**
      * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
      * content excluding '&#47;**' and '*&#47;' at the beginning and at the end respectively. It can only be used on a
@@ -338,6 +393,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
+     * Sets the output file.
+     * <p>
+     * Defaults to stdout.
+     *
+     * @param file the output file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation outputPath(Path file) {
+        return outputPath(file.toFile());
+    }
+
+    /**
      * Sets the property files to load.
      *
      * @param file the file
@@ -361,15 +428,24 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
+     * Sets the property files to load.
+     *
+     * @param file the file
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation propertiesFile(Path file) {
+        return propertiesFile(file.toFile());
+    }
+
+    /**
      * Specified the file(s) or folder(s) containing the source files to check.
      *
      * @param dir one or more directories
      * @return the checkstyle operation
-     * @see #sourceDir(Collection)
+     * @see #sourceDirStrings(Collection)
      */
     public CheckstyleOperation sourceDir(String... dir) {
-        sourceDir_.addAll(Arrays.stream(dir).map(File::new).toList());
-        return this;
+        return sourceDirStrings(List.of(dir));
     }
 
     /**
@@ -380,8 +456,18 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Collection)
      */
     public CheckstyleOperation sourceDir(File... dir) {
-        sourceDir_.addAll(List.of(dir));
-        return this;
+        return sourceDir(List.of(dir));
+    }
+
+    /**
+     * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @param dir one or more directories
+     * @return the checkstyle operation
+     * @see #sourceDirPaths(Collection)
+     */
+    public CheckstyleOperation sourceDir(Path... dir) {
+        return sourceDirPaths(List.of(dir));
     }
 
     /**
@@ -389,7 +475,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the directories
      * @return the checkstyle operation
-     * @see #sourceDir(String...)
+     * @see #sourceDir(File...)
      */
     public CheckstyleOperation sourceDir(Collection<File> dirs) {
         sourceDir_.addAll(dirs);
@@ -403,6 +489,29 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public Set<File> sourceDir() {
         return sourceDir_;
+    }
+
+    /**
+     * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @param dirs the directories
+     * @return the checkstyle operation
+     * @see #sourceDir(Path...)
+     */
+    public CheckstyleOperation sourceDirPaths(Collection<Path> dirs) {
+        return sourceDir(dirs.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Specified the file(s) or folder(s) containing the source files to check.
+     *
+     * @param dirs the directories
+     * @return the checkstyle operation
+     * @see #sourceDir(String...)
+     */
+    public CheckstyleOperation sourceDirStrings(Collection<String> dirs) {
+        sourceDir_.addAll(dirs.stream().map(File::new).toList());
+        return this;
     }
 
     /**
@@ -484,12 +593,5 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             options_.remove("-J");
         }
         return this;
-    }
-
-    /*
-     * Determines if a string is not blank.
-     */
-    private boolean isNotBlank(String s) {
-        return s != null && !s.isBlank();
     }
 }
