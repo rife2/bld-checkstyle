@@ -120,21 +120,30 @@ class CheckstyleOperationTest {
     void exclude() {
         var foo = new File(SRC_MAIN_JAVA);
         var bar = new File(SRC_TEST_JAVA);
-        var op = new CheckstyleOperation().fromProject(new Project()).exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
         var e = "-e ";
-        assertThat(op.executeConstructProcessCommandList()).as("strings")
+
+        var op = new CheckstyleOperation().fromProject(new Project()).exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
+        assertThat(op.executeConstructProcessCommandList()).as("String...")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+
+        op = new CheckstyleOperation().fromProject(new Project()).excludeStrings(List.of(SRC_MAIN_JAVA, SRC_TEST_JAVA));
+        assertThat(op.executeConstructProcessCommandList()).as("List(String...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(foo, bar);
-        assertThat(op.executeConstructProcessCommandList()).as("files")
+        assertThat(op.executeConstructProcessCommandList()).as("File...")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(foo, bar));
-        assertThat(op.executeConstructProcessCommandList()).as("list")
+        assertThat(op.executeConstructProcessCommandList()).as("List(File...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(foo.toPath(), bar.toPath());
-        assertThat(op.executeConstructProcessCommandList()).as("list")
+        assertThat(op.executeConstructProcessCommandList()).as("Path...")
+                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+
+        op = new CheckstyleOperation().fromProject(new Project()).excludePaths(List.of(foo.toPath(), bar.toPath()));
+        assertThat(op.executeConstructProcessCommandList()).as("List(Path...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
     }
 
@@ -252,24 +261,29 @@ class CheckstyleOperationTest {
         var foo = new File(FOO);
         var bar = new File(BAR);
 
-        var op = new CheckstyleOperation().fromProject(new Project()).sourceDir(FOO);
-        assertThat(op.sourceDir()).contains(foo);
+        var op = new CheckstyleOperation().fromProject(new Project()).sourceDir(FOO, BAR);
+        assertThat(op.sourceDir()).as("String...").hasSize(2).contains(foo, bar);
+        op.sourceDir().clear();
+
+        op = op.sourceDirStrings(List.of(FOO, BAR));
+        assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
+        op.sourceDir().clear();
 
         op = op.sourceDir(foo, bar);
-        assertThat(op.sourceDir()).as("foo, bar").hasSize(2)
-                .contains(foo).contains(bar);
+        assertThat(op.sourceDir()).as("File...").hasSize(2).contains(foo, bar);
         op.sourceDir().clear();
 
         op = op.sourceDir(List.of(foo, bar));
-        assertThat(op.sourceDir()).as("List.of(foo, bar)").hasSize(2)
-                .contains(foo).contains(bar);
+        assertThat(op.sourceDir()).as("List(File...)").hasSize(2).contains(foo, bar);
         op.sourceDir().clear();
 
         op = op.sourceDir(foo.toPath(), bar.toPath());
-        assertThat(op.sourceDir()).as("foo.toPath(), bar.toPath()").hasSize(2)
-                .contains(foo).contains(bar);
+        assertThat(op.sourceDir()).as("Path...").hasSize(2).contains(foo, bar);
         op.sourceDir().clear();
 
+        op = op.sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
+        assertThat(op.sourceDir()).as("List(Path...)").hasSize(2).contains(foo, bar);
+        op.sourceDir().clear();
     }
 
 

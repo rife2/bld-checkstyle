@@ -93,7 +93,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation configurationFile(Path file) {
-        return configurationFile(file.toFile());
+        return configurationFile(file.toFile().getAbsolutePath());
     }
 
     /**
@@ -117,7 +117,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param path one or more paths
      * @return the checkstyle operation
-     * @see #sourceDir(Collection)
+     * @see #excludeStrings(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
         return excludeStrings(List.of(path));
@@ -129,7 +129,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param path one or more paths
      * @return the checkstyle operation
-     * @see #sourceDir(Collection)
+     * @see #exclude(Collection)
      */
     public CheckstyleOperation exclude(File... path) {
         return exclude(List.of(path));
@@ -141,7 +141,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param path one or more paths
      * @return the checkstyle operation
-     * @see #sourceDir(Collection)
+     * @see #excludePaths(Collection)
      */
     public CheckstyleOperation exclude(Path... path) {
         return excludePaths(List.of(path));
@@ -153,7 +153,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the paths
      * @return the checkstyle operation
-     * @see #exclude(String...)
+     * @see #exclude(File...)
      */
     public CheckstyleOperation exclude(Collection<File> paths) {
         exclude_.addAll(paths);
@@ -166,7 +166,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the paths
      * @return the checkstyle operation
-     * @see #exclude(String...)
+     * @see #exclude(Path...)
      */
     public CheckstyleOperation excludePaths(Collection<Path> paths) {
         return exclude(paths.stream().map(Path::toFile).toList());
@@ -180,8 +180,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeRegex(Collection)
      */
     public CheckstyleOperation excludeRegex(String... regex) {
-        excludeRegex_.addAll(List.of(regex));
-        return this;
+        return excludeRegex(List.of(regex));
     }
 
     /**
@@ -205,8 +204,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #exclude(String...)
      */
     public CheckstyleOperation excludeStrings(Collection<String> paths) {
-        exclude_.addAll(paths.stream().map(File::new).toList());
-        return this;
+        return exclude(paths.stream().map(File::new).toList());
     }
 
     @Override
@@ -401,7 +399,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation outputPath(Path file) {
-        return outputPath(file.toFile());
+        return outputPath(file.toFile().getAbsolutePath());
     }
 
     /**
@@ -434,7 +432,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation propertiesFile(Path file) {
-        return propertiesFile(file.toFile());
+        return propertiesFile(file.toFile().getAbsolutePath());
     }
 
     /**
@@ -510,8 +508,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(String...)
      */
     public CheckstyleOperation sourceDirStrings(Collection<String> dirs) {
-        sourceDir_.addAll(dirs.stream().map(File::new).toList());
-        return this;
+        return sourceDir(dirs.stream().map(File::new).toList());
     }
 
     /**
