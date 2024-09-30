@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
@@ -90,15 +91,17 @@ class CheckstyleOperationTest {
                 .treeWithJavadoc(true)
                 .executeConstructProcessCommandList();
 
-        for (var p : args) {
-            var found = false;
-            for (var a : params) {
-                if (a.startsWith(p)) {
-                    found = true;
-                    break;
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            for (var p : args) {
+                var found = false;
+                for (var a : params) {
+                    if (a.startsWith(p)) {
+                        found = true;
+                        break;
+                    }
                 }
+                softly.assertThat(found).as(p + " not found.").isTrue();
             }
-            assertThat(found).as(p + " not found.").isTrue();
         }
     }
 
