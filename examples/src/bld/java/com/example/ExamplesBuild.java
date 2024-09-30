@@ -23,7 +23,7 @@ public class ExamplesBuild extends BaseProject {
         
         repositories = List.of(MAVEN_CENTRAL);
 
-        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 18, 1)));
+        scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 18, 2)));
 
         testOperation().mainClass("com.example.ExamplesTest");
     }
