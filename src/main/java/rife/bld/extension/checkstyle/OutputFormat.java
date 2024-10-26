@@ -17,7 +17,7 @@
 package rife.bld.extension.checkstyle;
 
 /**
- * The Checkstyle output format for XML, sarif and default (plaib) logger.
+ * The Checkstyle output format for XML, sarif and default (plain) logger.
  */
 public enum OutputFormat {
     XML("xml"),

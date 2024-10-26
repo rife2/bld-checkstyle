@@ -97,7 +97,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints all debug logging of CheckStyle utility.
+     * Prints all debug logging of Checkstyle utility.
      *
      * @param isDebug {@code true} or {@code false}
      * @return the checkstyle operation
@@ -112,7 +112,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param path one or more paths
@@ -124,7 +124,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param path one or more paths
@@ -136,7 +136,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param path one or more paths
@@ -148,7 +148,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param paths the paths
@@ -161,7 +161,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param paths the paths
@@ -173,7 +173,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file pattern to exclude from CheckStyle. Multiple exclude are allowed.
+     * Directory/file pattern to exclude from Checkstyle. Multiple exclude are allowed.
      *
      * @param regex the pattern to exclude
      * @return the checkstyle operation
@@ -184,7 +184,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file pattern to exclude from CheckStyle. Multiple exclude are allowed.
+     * Directory/file pattern to exclude from Checkstyle. Multiple exclude are allowed.
      *
      * @param regex the patterns to exclude
      * @return the checkstyle operation
@@ -196,7 +196,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file to exclude from CheckStyle. The path can be the full, absolute path, or relative to the current
+     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
      * path. Multiple excludes are allowed.
      *
      * @param paths the paths
