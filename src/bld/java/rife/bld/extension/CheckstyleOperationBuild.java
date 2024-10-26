@@ -48,6 +48,8 @@ public class CheckstyleOperationBuild extends Project {
                 .include(dependency("com.puppycrawl.tools", "checkstyle", version(10, 18, 2)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 1)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 1)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 11, 3)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 11, 3)))
                 .include(dependency("org.assertj", "assertj-core", version(3, 26, 3)));
 
         javadocOperation()
