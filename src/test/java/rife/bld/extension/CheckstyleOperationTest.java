@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-
 class CheckstyleOperationTest {
     public static final String SRC_MAIN_JAVA = "src/main/java";
     public static final String SRC_TEST_JAVA = "src/test/java";

@@ -26,6 +26,9 @@ public enum OutputFormat {
 
     public final String label;
 
+    /**
+     * Sets the label of this output format.
+     */
     OutputFormat(String label) {
         this.label = label;
     }
