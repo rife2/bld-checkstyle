@@ -436,7 +436,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dir one or more directories
      * @return the checkstyle operation
@@ -447,7 +447,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dir one or more directories
      * @return the checkstyle operation
@@ -458,7 +458,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dir one or more directories
      * @return the checkstyle operation
@@ -469,7 +469,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dirs the directories
      * @return the checkstyle operation
@@ -490,7 +490,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dirs the directories
      * @return the checkstyle operation
@@ -501,7 +501,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Specified the file(s) or folder(s) containing the source files to check.
+     * Specifies the file(s) or folder(s) containing the source files to check.
      *
      * @param dirs the directories
      * @return the checkstyle operation
