@@ -7,7 +7,15 @@
 [![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-checkstyle/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-checkstyle)
 [![GitHub CI](https://github.com/rife2/bld-checkstyle/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-checkstyle/actions/workflows/bld.yml)
 
-To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
+To install the latest version, add the following to the `lib/bld/bld-wrapper.properties` file:
+
+```properties
+bld.extension-checkstyle=com.uwyn.rife2:bld-checkstyle
+```
+
+For more information, please refer to the [extensions](https://github.com/rife2/bld/wiki/Extensions) documentation.
+
+## Check Source Code with Checkstyle
 
 To check your code with Chesktyle, include the following in your build file:
 
