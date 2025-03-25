@@ -5,6 +5,9 @@ import rife.bld.BuildCommand;
 import rife.bld.extension.CheckstyleOperation;
 
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static rife.bld.dependencies.Repository.MAVEN_CENTRAL;
 import static rife.bld.dependencies.Scope.*;
@@ -29,6 +32,16 @@ public class ExamplesBuild extends BaseProject {
     }
 
     public static void main(String[] args) {
+        // Enable detailed logging for the extensions
+        var level = Level.ALL;
+        var logger = Logger.getLogger("rife.bld.extension");
+        var consoleHandler = new ConsoleHandler();
+
+        consoleHandler.setLevel(level);
+        logger.addHandler(consoleHandler);
+        logger.setLevel(level);
+        logger.setUseParentHandlers(false);
+
         new ExamplesBuild().start(args);
     }
 
