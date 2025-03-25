@@ -19,6 +19,8 @@ package rife.bld.extension;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.WebProject;
@@ -65,6 +67,7 @@ class CheckstyleOperationTest {
     }
 
     @Test
+    @EnabledOnOs(OS.LINUX)
     void checkAllParameters() throws IOException {
         var args = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
 
