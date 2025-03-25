@@ -45,7 +45,7 @@ public class ExamplesBuild extends BaseProject {
         new ExamplesBuild().start(args);
     }
 
-    @BuildCommand(summary = "Check code style")
+    @BuildCommand(summary = "Check code style using Sun coding conventions")
     public void checkstyle() throws Exception {
         new CheckstyleOperation()
                 .fromProject(this)
@@ -53,4 +53,11 @@ public class ExamplesBuild extends BaseProject {
                 .execute();
     }
 
+    @BuildCommand(value = "checkstyle-custom", summary = "Check code style using custom coding conventions")
+    public void checkstyleCustom() throws Exception {
+        new CheckstyleOperation()
+                .fromProject(this)
+                .configurationFile("src/test/resources/checkstyle.xml")
+                .execute();
+    }
 }
