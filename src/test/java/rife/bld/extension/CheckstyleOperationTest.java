@@ -125,27 +125,27 @@ class CheckstyleOperationTest {
         var e = "-e ";
 
         var op = new CheckstyleOperation().fromProject(new Project()).exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
-        assertThat(op.executeConstructProcessCommandList()).as("String...")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("String...")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).excludeStrings(List.of(SRC_MAIN_JAVA, SRC_TEST_JAVA));
-        assertThat(op.executeConstructProcessCommandList()).as("List(String...)")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(String...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(foo, bar);
-        assertThat(op.executeConstructProcessCommandList()).as("File...")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("File...")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(foo, bar));
-        assertThat(op.executeConstructProcessCommandList()).as("List(File...)")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(File...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).exclude(foo.toPath(), bar.toPath());
-        assertThat(op.executeConstructProcessCommandList()).as("Path...")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("Path...")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
 
         op = new CheckstyleOperation().fromProject(new Project()).excludePaths(List.of(foo.toPath(), bar.toPath()));
-        assertThat(op.executeConstructProcessCommandList()).as("List(Path...)")
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(Path...)")
                 .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
     }
 
@@ -153,10 +153,10 @@ class CheckstyleOperationTest {
     void excludeRegex() {
         var op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(FOO, BAR);
         var x = "-x ";
-        assertThat(op.executeConstructProcessCommandList()).contains(x + FOO, x + BAR);
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).contains(x + FOO, x + BAR);
 
         op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(List.of(FOO, BAR));
-        assertThat(op.executeConstructProcessCommandList()).as("as list").contains(x + FOO, x + BAR);
+        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("as list").contains(x + FOO, x + BAR);
     }
 
     @Test

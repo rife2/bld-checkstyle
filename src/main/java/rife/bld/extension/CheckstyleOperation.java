@@ -250,7 +250,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             if (!exclude_.isEmpty()) {
                 for (var e : exclude_) {
                     if (e.exists()) {
-                        args.add("-e " + e.getAbsolutePath());
+                        args.add("-e");
+                        args.add(e.getAbsolutePath());
                     }
                 }
             }
@@ -258,7 +259,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             if (!excludeRegex_.isEmpty()) {
                 for (var e : excludeRegex_) {
                     if (isNotBlank(e)) {
-                        args.add("-x " + e);
+                        args.add("-x");
+                        args.add(e);
                     }
                 }
             }
