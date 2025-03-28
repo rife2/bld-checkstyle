@@ -34,7 +34,7 @@ public class CheckstyleOperationBuild extends Project {
     public CheckstyleOperationBuild() {
         pkg = "rife.bld.extension";
         name = "CheckstyleOperation";
-        version = version(1, 0, 14, "SNAPSHOT");
+        version = version(1, 0, 14);
 
         javaRelease = 17;
 
