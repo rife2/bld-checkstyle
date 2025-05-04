@@ -455,6 +455,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      * @see #sourceDir(Collection)
      */
+    @SuppressWarnings("UnusedReturnValue")
     public CheckstyleOperation sourceDir(File... dir) {
         return sourceDir(List.of(dir));
     }
@@ -466,6 +467,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      * @see #sourceDirPaths(Collection)
      */
+    @SuppressWarnings("UnusedReturnValue")
     public CheckstyleOperation sourceDir(Path... dir) {
         return sourceDirPaths(List.of(dir));
     }

@@ -18,6 +18,8 @@ package rife.bld.extension;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -41,12 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 class CheckstyleOperationTest {
-    public static final String SRC_MAIN_JAVA = "src/main/java";
-    public static final String SRC_TEST_JAVA = "src/test/java";
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
     private static final String REMOVE = "remove";
+    private static final String SRC_MAIN_JAVA = "src/main/java";
+    private static final String SRC_TEST_JAVA = "src/test/java";
 
     @BeforeAll
     static void beforeAll() {
@@ -59,272 +61,340 @@ class CheckstyleOperationTest {
         logger.setUseParentHandlers(false);
     }
 
-
-    @Test
-    void branchMatchingXpath() {
-        var op = new CheckstyleOperation().fromProject(new Project()).branchMatchingXpath(FOO);
-        assertThat(op.options().get("-b")).isEqualTo(FOO);
+    private CheckstyleOperation newCheckstyleOperation() {
+        return new CheckstyleOperation().fromProject(new Project());
     }
 
-    @Test
-    @EnabledOnOs(OS.LINUX)
-    void checkAllParameters() throws IOException {
-        var args = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
+    @Nested
+    @DisplayName("Exclude Tests")
+    class ExcludeTests {
+        private static final String e = "-e ";
+        private static final String x = "-x ";
+        private final File srcMainJavaDir = new File(SRC_MAIN_JAVA);
+        private final File srcTestJavaDir = new File(SRC_TEST_JAVA);
 
-        assertThat(args).isNotEmpty();
+        @Test
+        void excludeFromFileArray() {
+            var op = newCheckstyleOperation().exclude(srcTestJavaDir, srcMainJavaDir);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcTestJavaDir.getAbsolutePath()).contains(e + srcMainJavaDir.getAbsolutePath());
+        }
 
-        var params = new CheckstyleOperation()
-                .fromProject(new Project())
-                .branchMatchingXpath("xpath")
-                .debug(true)
-                .configurationFile(new File("config"))
-                .exclude(SRC_MAIN_JAVA)
-                .excludeRegex("regex")
-                .executeIgnoredModules(true)
-                .format(OutputFormat.XML)
-                .generateXpathSuppression(true)
-                .javadocTree(true)
-                .outputPath(new File("optionPath"))
-                .propertiesFile(new File("properties"))
-                .suppressionLineColumnNumber("12")
-                .tabWith(1)
-                .tree(true)
-                .treeWithComments(true)
-                .treeWithJavadoc(true)
-                .executeConstructProcessCommandList();
+        @Test
+        void excludeFromFileList() {
+            var op = newCheckstyleOperation()
+                    .exclude(List.of(srcTestJavaDir, srcMainJavaDir));
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcTestJavaDir.getAbsolutePath()).contains(e + srcMainJavaDir.getAbsolutePath());
+        }
 
-        try (var softly = new AutoCloseableSoftAssertions()) {
-            for (var p : args) {
-                var found = false;
-                for (var a : params) {
-                    if (a.startsWith(p)) {
-                        found = true;
-                        break;
-                    }
-                }
-                softly.assertThat(found).as(p + " not found.").isTrue();
-            }
+        @Test
+        void excludeFromPathArray() {
+            var op = newCheckstyleOperation()
+                    .exclude(srcTestJavaDir.toPath(), srcMainJavaDir.toPath());
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcTestJavaDir.getAbsolutePath()).contains(e + srcMainJavaDir.getAbsolutePath());
+        }
+
+        @Test
+        void excludeFromPathList() {
+            var op = newCheckstyleOperation()
+                    .excludePaths(List.of(srcTestJavaDir.toPath(), srcMainJavaDir.toPath()));
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcTestJavaDir.getAbsolutePath()).contains(e + srcMainJavaDir.getAbsolutePath());
+        }
+
+        @Test
+        void excludeFromStringArray() {
+            var op = newCheckstyleOperation().exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcTestJavaDir.getAbsolutePath()).contains(e + srcMainJavaDir.getAbsolutePath());
+        }
+
+        @Test
+        void excludeFromStringList() {
+            var op = newCheckstyleOperation()
+                    .excludeStrings(List.of(SRC_MAIN_JAVA, SRC_TEST_JAVA));
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .contains(e + srcMainJavaDir.getAbsolutePath()).contains(e + srcTestJavaDir.getAbsolutePath());
+        }
+
+        @Test
+        void excludeNonExistingPath() {
+            var op = newCheckstyleOperation().exclude(FOO);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .doesNotContain(e + FOO);
+        }
+
+        @Test
+        void excludeNonExistingPaths() {
+            var op = newCheckstyleOperation().exclude(FOO, BAR);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .doesNotContain(e + FOO).doesNotContain(e + BAR);
+        }
+
+        @Test
+        void excludeRegex() {
+            var op = newCheckstyleOperation().excludeRegex(FOO, BAR);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList())).contains(x + FOO, x + BAR);
+        }
+
+        @Test
+        void excludeRegexFromList() {
+            var op = newCheckstyleOperation().excludeRegex(List.of(FOO, BAR));
+            assertThat(String.join(" ", op.executeConstructProcessCommandList())).contains(x + FOO, x + BAR);
         }
     }
 
-    @Test
-    void configurationFile() {
-        var op = new CheckstyleOperation().fromProject(new Project()).configurationFile(FOO);
-        assertThat(op.options().get("-c")).isEqualTo(FOO);
+    @Nested
+    @DisplayName("Execute Tests")
+    class ExecuteTests {
+        @Test
+        void execute() throws IOException, ExitStatusException, InterruptedException {
+            var tmpFile = File.createTempFile("checkstyle-google", ".txt");
+            tmpFile.deleteOnExit();
+            var op = new CheckstyleOperation()
+                    .fromProject(new WebProject())
+                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
+                    .configurationFile(Path.of("src/test/resources/google_checks.xml"))
+                    .outputPath(tmpFile.toPath());
+            op.execute();
+            assertThat(tmpFile).as("tmp file should exist").exists();
+        }
+
+        @Test
+        void executeConstructProcessCommandList() {
+            var op = new CheckstyleOperation().fromProject(new BaseProject())
+                    .configurationFile("config/checkstyle.xml")
+                    .branchMatchingXpath("xpath")
+                    .propertiesFile("config/checkstyle.properties")
+                    .debug(true)
+                    .executeIgnoredModules(true)
+                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA);
+            assertThat(String.join(" ", op.executeConstructProcessCommandList()))
+                    .startsWith("java -cp ")
+                    .endsWith(
+                            "com.puppycrawl.tools.checkstyle.Main " +
+                                    "-p config/checkstyle.properties " +
+                                    "-b xpath " +
+                                    "-c config/checkstyle.xml " +
+                                    "-d -E " +
+                                    new File(SRC_MAIN_JAVA).getAbsolutePath() + " " +
+                                    new File(SRC_TEST_JAVA).getAbsolutePath());
+        }
+
+        @Test
+        void executeIgnoredModules() {
+            var op = newCheckstyleOperation().executeIgnoredModules(true);
+            assertThat(op.options().containsKey("-E")).as(ADD).isTrue();
+            op = op.executeIgnoredModules(false);
+            assertThat(op.options().containsKey("-E")).as(REMOVE).isFalse();
+        }
+
+        @Test
+        void executeNoProject() {
+            var op = new CheckstyleOperation();
+            assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
+        }
+
+        @Test
+        void executeSunChecks() throws IOException {
+            var tmpFile = File.createTempFile("checkstyle-sun", ".txt");
+            tmpFile.deleteOnExit();
+            var op = newCheckstyleOperation()
+                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
+                    .configurationFile("src/test/resources/sun_checks.xml")
+                    .outputPath(tmpFile.getAbsolutePath());
+            assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
+            assertThat(tmpFile).as("tmp file should exist").exists();
+        }
     }
 
-    @Test
-    void debug() {
-        var op = new CheckstyleOperation().fromProject(new Project()).debug(true);
-        assertThat(op.options().containsKey("-d")).as(ADD).isTrue();
-        op = op.debug(false);
-        assertThat(op.options().containsKey("-d")).as(REMOVE).isFalse();
-    }
+    @Nested
+    @DisplayName("Options Tests")
+    class OptionsTests {
+        @Test
+        void branchMatchingXpath() {
+            var op = newCheckstyleOperation().branchMatchingXpath(FOO);
+            assertThat(op.options().get("-b")).isEqualTo(FOO);
+        }
 
-    @Test
-    void exclude() {
-        var foo = new File(SRC_MAIN_JAVA);
-        var bar = new File(SRC_TEST_JAVA);
-        var e = "-e ";
+        @Test
+        @EnabledOnOs(OS.LINUX)
+        void checkAllParameters() throws IOException {
+            var args = Files.readAllLines(Paths.get("src", "test", "resources", "checkstyle-args.txt"));
 
-        var op = new CheckstyleOperation().fromProject(new Project()).exclude(SRC_MAIN_JAVA, SRC_TEST_JAVA);
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("String...")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+            assertThat(args).isNotEmpty();
 
-        op = new CheckstyleOperation().fromProject(new Project()).excludeStrings(List.of(SRC_MAIN_JAVA, SRC_TEST_JAVA));
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(String...)")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+            var params = newCheckstyleOperation()
+                    .branchMatchingXpath("xpath")
+                    .debug(true)
+                    .configurationFile(new File("config"))
+                    .exclude(SRC_MAIN_JAVA)
+                    .excludeRegex("regex")
+                    .executeIgnoredModules(true)
+                    .format(OutputFormat.XML)
+                    .generateXpathSuppression(true)
+                    .javadocTree(true)
+                    .outputPath(new File("optionPath"))
+                    .propertiesFile(new File("properties"))
+                    .suppressionLineColumnNumber("12")
+                    .tabWith(1)
+                    .tree(true)
+                    .treeWithComments(true)
+                    .treeWithJavadoc(true)
+                    .executeConstructProcessCommandList();
 
-        op = new CheckstyleOperation().fromProject(new Project()).exclude(foo, bar);
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("File...")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                for (var p : args) {
+                    var found = false;
+                    for (var a : params) {
+                        if (a.startsWith(p)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    softly.assertThat(found).as("%s not found.", p).isTrue();
+                }
+            }
+        }
 
-        op = new CheckstyleOperation().fromProject(new Project()).exclude(List.of(foo, bar));
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(File...)")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+        @Test
+        void configurationFile() {
+            var op = newCheckstyleOperation().configurationFile(FOO);
+            assertThat(op.options().get("-c")).isEqualTo(FOO);
+        }
 
-        op = new CheckstyleOperation().fromProject(new Project()).exclude(foo.toPath(), bar.toPath());
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("Path...")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
+        @Test
+        void debug() {
+            var op = newCheckstyleOperation().debug(true);
+            assertThat(op.options().containsKey("-d")).as(ADD).isTrue();
+            op = op.debug(false);
+            assertThat(op.options().containsKey("-d")).as(REMOVE).isFalse();
+        }
 
-        op = new CheckstyleOperation().fromProject(new Project()).excludePaths(List.of(foo.toPath(), bar.toPath()));
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("List(Path...)")
-                .contains(e + foo.getAbsolutePath()).contains(e + bar.getAbsolutePath());
-    }
+        @Test
+        void format() {
+            var op = newCheckstyleOperation().format(OutputFormat.XML);
+            assertThat(op.options().get("-f")).isEqualTo("xml");
+        }
 
-    @Test
-    void excludeRegex() {
-        var op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(FOO, BAR);
-        var x = "-x ";
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).contains(x + FOO, x + BAR);
+        @Test
+        void generateXpathSuppression() {
+            var op = newCheckstyleOperation().generateXpathSuppression(true);
+            assertThat(op.options().containsKey("-g")).as(ADD).isTrue();
+            op = op.generateXpathSuppression(false);
+            assertThat(op.options().containsKey("-g")).as(REMOVE).isFalse();
+        }
 
-        op = new CheckstyleOperation().fromProject(new Project()).excludeRegex(List.of(FOO, BAR));
-        assertThat(String.join(" ", op.executeConstructProcessCommandList())).as("as list").contains(x + FOO, x + BAR);
-    }
+        @Test
+        void javadocTree() {
+            var op = newCheckstyleOperation().javadocTree(true);
+            assertThat(op.options().containsKey("-j")).as(ADD).isTrue();
+            op = op.javadocTree(false);
+            assertThat(op.options().containsKey("-j")).as(REMOVE).isFalse();
+        }
 
-    @Test
-    void execute() throws IOException, ExitStatusException, InterruptedException {
-        var tmpFile = File.createTempFile("checkstyle-google", ".txt");
-        tmpFile.deleteOnExit();
-        var op = new CheckstyleOperation()
-                .fromProject(new WebProject())
-                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
-                .configurationFile(Path.of("src/test/resources/google_checks.xml"))
-                .outputPath(tmpFile.toPath());
-        op.execute();
-        assertThat(tmpFile).exists();
-    }
+        @Test
+        void outputPath() {
+            var op = newCheckstyleOperation().outputPath(FOO);
+            assertThat(op.options().get("-o")).isEqualTo(FOO);
+        }
 
-    @Test
-    void executeConstructProcessCommandList() {
-        var op = new CheckstyleOperation().fromProject(new BaseProject())
-                .configurationFile("config/checkstyle.xml")
-                .branchMatchingXpath("xpath")
-                .propertiesFile("config/checkstyle.properties")
-                .debug(true)
-                .executeIgnoredModules(true)
-                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA);
-        assertThat(String.join(" ", op.executeConstructProcessCommandList()))
-                .startsWith("java -cp ")
-                .endsWith(
-                        "com.puppycrawl.tools.checkstyle.Main " +
-                                "-p config/checkstyle.properties " +
-                                "-b xpath " +
-                                "-c config/checkstyle.xml " +
-                                "-d -E " +
-                                new File(SRC_MAIN_JAVA).getAbsolutePath() + " " +
-                                new File(SRC_TEST_JAVA).getAbsolutePath());
-    }
+        @Test
+        void propertiesFile() {
+            var op = newCheckstyleOperation().propertiesFile(FOO);
+            assertThat(op.options().get("-p")).isEqualTo(FOO);
 
-    @Test
-    void executeIgnoredModules() {
-        var op = new CheckstyleOperation().fromProject(new Project()).executeIgnoredModules(true);
-        assertThat(op.options().containsKey("-E")).as(ADD).isTrue();
-        op = op.executeIgnoredModules(false);
-        assertThat(op.options().containsKey("-E")).as(REMOVE).isFalse();
-    }
+            var fooPath = Path.of(FOO);
+            op = op.propertiesFile(fooPath);
+            assertThat(op.options().get("-p")).isEqualTo(fooPath.toFile().getAbsolutePath());
+        }
 
-    @Test
-    void executeNoProject() {
-        var op = new CheckstyleOperation();
-        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
-    }
+        @Test
+        void suppressionLineColumnNumber() {
+            var op = newCheckstyleOperation().suppressionLineColumnNumber(FOO + ':' + BAR);
+            assertThat(op.options().get("-s")).isEqualTo(FOO + ':' + BAR);
+        }
 
-    @Test
-    void executeSunChecks() throws IOException {
-        var tmpFile = File.createTempFile("checkstyle-sun", ".txt");
-        tmpFile.deleteOnExit();
-        var op = new CheckstyleOperation()
-                .fromProject(new WebProject())
-                .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
-                .configurationFile("src/test/resources/sun_checks.xml")
-                .outputPath(tmpFile.getAbsolutePath());
-        assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
-        assertThat(tmpFile).exists();
-    }
+        @Test
+        void tabWith() {
+            var op = newCheckstyleOperation().tabWith(9);
+            assertThat(op.options().get("-w")).isEqualTo("9");
+        }
 
-    @Test
-    void format() {
-        var op = new CheckstyleOperation().fromProject(new Project()).format(OutputFormat.XML);
-        assertThat(op.options().get("-f")).isEqualTo("xml");
-    }
+        @Test
+        void tree() {
+            var op = newCheckstyleOperation().tree(true);
+            assertThat(op.options().containsKey("-t")).as(ADD).isTrue();
+            op = op.tree(false);
+            assertThat(op.options().containsKey("-t")).as(REMOVE).isFalse();
+        }
 
-    @Test
-    void generateXpathSuppression() {
-        var op = new CheckstyleOperation().fromProject(new Project()).generateXpathSuppression(true);
-        assertThat(op.options().containsKey("-g")).as(ADD).isTrue();
-        op = op.generateXpathSuppression(false);
-        assertThat(op.options().containsKey("-g")).as(REMOVE).isFalse();
-    }
+        @Test
+        void treeWithComments() {
+            var op = newCheckstyleOperation().treeWithComments(true);
+            assertThat(op.options().containsKey("-T")).as(ADD).isTrue();
+            op = op.treeWithComments(false);
+            assertThat(op.options().containsKey("-T")).as(REMOVE).isFalse();
+        }
 
-    @Test
-    void javadocTree() {
-        var op = new CheckstyleOperation().fromProject(new Project()).javadocTree(true);
-        assertThat(op.options().containsKey("-j")).as(ADD).isTrue();
-        op = op.javadocTree(false);
-        assertThat(op.options().containsKey("-j")).as(REMOVE).isFalse();
-    }
+        @Test
+        void treeWithJavadoc() {
+            var op = newCheckstyleOperation().treeWithJavadoc(true);
+            assertThat(op.options().containsKey("-J")).as(ADD).isTrue();
+            op = op.treeWithJavadoc(false);
+            assertThat(op.options().containsKey("-J")).as(REMOVE).isFalse();
+        }
 
-    @Test
-    void outputPath() {
-        var op = new CheckstyleOperation().fromProject(new Project()).outputPath(FOO);
-        assertThat(op.options().get("-o")).isEqualTo(FOO);
-    }
+        @Nested
+        @DisplayName("Source Dir Tests")
+        class SourceDirTests {
+            private final File bar = new File(BAR);
+            private final File foo = new File(FOO);
+            private final CheckstyleOperation op = newCheckstyleOperation().sourceDir(FOO, BAR);
 
-    @Test
-    void propertiesFile() {
-        var op = new CheckstyleOperation().fromProject(new Project()).propertiesFile(FOO);
-        assertThat(op.options().get("-p")).isEqualTo(FOO);
+            @Test
+            void sourceDirFromFileArray() {
+                op.sourceDir(foo, bar);
+                assertThat(op.sourceDir()).as("File...").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
 
-        var fooPath = Path.of(FOO);
-        op = op.propertiesFile(fooPath);
-        assertThat(op.options().get("-p")).isEqualTo(fooPath.toFile().getAbsolutePath());
-    }
+            @Test
+            void sourceDirFromFileList() {
+                op.sourceDir(List.of(foo, bar));
+                assertThat(op.sourceDir()).as("List(File...)").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
 
-    @Test
-    void sourceDir() {
-        var foo = new File(FOO);
-        var bar = new File(BAR);
+            @Test
+            void sourceDirFromPathArray() {
+                op.sourceDir(foo.toPath(), bar.toPath());
+                assertThat(op.sourceDir()).as("Path...").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
 
-        var op = new CheckstyleOperation().fromProject(new Project()).sourceDir(FOO, BAR);
-        assertThat(op.sourceDir()).as("String...").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
+            @Test
+            void sourceDirFromPathList() {
+                op.sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
+                assertThat(op.sourceDir()).as("List(Path...)").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
 
-        op = op.sourceDirStrings(List.of(FOO, BAR));
-        assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
+            @Test
+            void sourceDirFromStringArray() {
+                op.sourceDir("foo", "bar");
+                assertThat(op.sourceDir()).as("String...").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
 
-        op = op.sourceDir(foo, bar);
-        assertThat(op.sourceDir()).as("File...").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
-
-        op = op.sourceDir(List.of(foo, bar));
-        assertThat(op.sourceDir()).as("List(File...)").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
-
-        op = op.sourceDir(foo.toPath(), bar.toPath());
-        assertThat(op.sourceDir()).as("Path...").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
-
-        op = op.sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
-        assertThat(op.sourceDir()).as("List(Path...)").hasSize(2).contains(foo, bar);
-        op.sourceDir().clear();
-    }
-
-
-    @Test
-    void suppressionLineColumnNumber() {
-        var op = new CheckstyleOperation().fromProject(new Project()).suppressionLineColumnNumber(FOO + ':' + BAR);
-        assertThat(op.options().get("-s")).isEqualTo(FOO + ':' + BAR);
-    }
-
-    @Test
-    void tabWith() {
-        var op = new CheckstyleOperation().fromProject(new Project()).tabWith(9);
-        assertThat(op.options().get("-w")).isEqualTo("9");
-    }
-
-    @Test
-    void tree() {
-        var op = new CheckstyleOperation().fromProject(new Project()).tree(true);
-        assertThat(op.options().containsKey("-t")).as(ADD).isTrue();
-        op = op.tree(false);
-        assertThat(op.options().containsKey("-t")).as(REMOVE).isFalse();
-    }
-
-    @Test
-    void treeWithComments() {
-        var op = new CheckstyleOperation().fromProject(new Project()).treeWithComments(true);
-        assertThat(op.options().containsKey("-T")).as(ADD).isTrue();
-        op = op.treeWithComments(false);
-        assertThat(op.options().containsKey("-T")).as(REMOVE).isFalse();
-    }
-
-    @Test
-    void treeWithJavadoc() {
-        var op = new CheckstyleOperation().fromProject(new Project()).treeWithJavadoc(true);
-        assertThat(op.options().containsKey("-J")).as(ADD).isTrue();
-        op = op.treeWithJavadoc(false);
-        assertThat(op.options().containsKey("-J")).as(REMOVE).isFalse();
+            @Test
+            void sourceDirFromStringList() {
+                op.sourceDirStrings(List.of(FOO, BAR));
+                assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
+                op.sourceDir().clear();
+            }
+        }
     }
 }
