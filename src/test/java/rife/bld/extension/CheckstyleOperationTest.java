@@ -235,6 +235,7 @@ class CheckstyleOperationTest {
                     .executeIgnoredModules(true)
                     .format(OutputFormat.XML)
                     .generateXpathSuppression(true)
+                    .generateChecksAndFileSuppression(true)
                     .javadocTree(true)
                     .outputPath(new File("optionPath"))
                     .propertiesFile(new File("properties"))
@@ -277,6 +278,14 @@ class CheckstyleOperationTest {
         void format() {
             var op = newCheckstyleOperation().format(OutputFormat.XML);
             assertThat(op.options().get("-f")).isEqualTo("xml");
+        }
+
+        @Test
+        void generateChecksAndFileSuppression() {
+            var op = newCheckstyleOperation().generateChecksAndFileSuppression(true);
+            assertThat(op.options().containsKey("-G")).as(ADD).isTrue();
+            op = op.generateChecksAndFileSuppression(false);
+            assertThat(op.options().containsKey("-G")).as(REMOVE).isFalse();
         }
 
         @Test

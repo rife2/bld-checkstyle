@@ -315,6 +315,25 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
+     * Generates to output a suppression xml that will have suppress elements with {@code checks} and {@code files}
+     * attributes only to use to suppress all violations from user's config. Instead of printing every violation, all
+     * violations will be catched and single suppressions xml file will be printed out. Used only with the
+     * {@link #configurationFile(String) configurationFile} option. Output location can be
+     * specified with the {@link #outputPath(String) output} option.
+     *
+     * @param generateChecksAndFileSuppression {@code true} or {@code false}
+     * @return the checkstyle operation
+     */
+    public CheckstyleOperation generateChecksAndFileSuppression(boolean generateChecksAndFileSuppression) {
+        if (generateChecksAndFileSuppression) {
+            options_.put("-G", "");
+        } else {
+            options_.remove("-G");
+        }
+        return this;
+    }
+
+    /**
      * Generates to output a suppression xml to use to suppress all violations from user's config. Instead of printing
      * every violation, all violations will be caught and single suppressions xml file will be printed out.
      * Used only with the {@link #configurationFile(String) configurationFile} option. Output location can be specified
