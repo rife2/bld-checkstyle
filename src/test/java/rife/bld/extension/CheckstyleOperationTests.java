@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-class CheckstyleOperationTest {
+class CheckstyleOperationTests {
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
