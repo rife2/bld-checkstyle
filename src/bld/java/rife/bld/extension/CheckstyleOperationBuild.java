@@ -52,7 +52,7 @@ public class CheckstyleOperationBuild extends Project {
                 .include(dependency("com.puppycrawl.tools", "checkstyle", version(11, 0, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 13, 4)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 13, 4)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 27, 3)));
+                .include(dependency("org.assertj", "assertj-core", version(3, 27, 4)));
 
         javadocOperation()
                 .javadocOptions()
