@@ -17,16 +17,18 @@
 package rife.bld.extension;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.WebProject;
 import rife.bld.extension.checkstyle.OutputFormat;
+import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
@@ -35,31 +37,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+@ExtendWith(LoggingExtension.class)
 class CheckstyleOperationTests {
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
+
+    @RegisterExtension
+    @SuppressWarnings({"unused"})
+    private static final LoggingExtension LOGGING_EXTENSION =
+            new LoggingExtension(CheckstyleOperation.class.getName());
+
     private static final String REMOVE = "remove";
     private static final String SRC_MAIN_JAVA = "src/main/java";
     private static final String SRC_TEST_JAVA = "src/test/java";
-
-    @BeforeAll
-    static void beforeAll() {
-        var level = Level.ALL;
-        var logger = Logger.getLogger("rife.bld.extension");
-        var consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(level);
-        logger.addHandler(consoleHandler);
-        logger.setLevel(level);
-        logger.setUseParentHandlers(false);
-    }
 
     private CheckstyleOperation newCheckstyleOperation() {
         return new CheckstyleOperation().fromProject(new Project());
