@@ -8,6 +8,7 @@
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" />
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="jacoco" />
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="pmd" />
+    <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="reporter" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">
