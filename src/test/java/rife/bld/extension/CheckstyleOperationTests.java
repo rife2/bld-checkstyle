@@ -69,6 +69,12 @@ class CheckstyleOperationTests {
         private final File srcTestJavaDir = new File(SRC_TEST_JAVA);
 
         @Test
+        void exclude() {
+            var op = newCheckstyleOperation().exclude(FOO, BAR);
+            assertThat(op.exclude()).hasSize(2).contains(new File(FOO), new File(BAR));
+        }
+
+        @Test
         void excludeFromFileArray() {
             var op = newCheckstyleOperation().exclude(srcTestJavaDir, srcMainJavaDir);
             assertThat(String.join(" ", op.executeConstructProcessCommandList()))
@@ -131,6 +137,13 @@ class CheckstyleOperationTests {
         @Test
         void excludeRegex() {
             var op = newCheckstyleOperation().excludeRegex(FOO, BAR);
+            assertThat(op.excludeRegex()).hasSize(2).contains(FOO, BAR);
+        }
+
+        @Test
+        void excludeRegexArray() {
+            var op = newCheckstyleOperation().excludeRegex(FOO, BAR);
+            assertThat(op.excludeRegex()).hasSize(2).contains(FOO, BAR);
             assertThat(String.join(" ", op.executeConstructProcessCommandList())).contains(x + FOO, x + BAR);
         }
 

@@ -41,7 +41,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private final Collection<File> exclude_ = new ArrayList<>();
     private final Map<String, String> options_ = new ConcurrentHashMap<>();
     private final Set<File> sourceDir_ = new TreeSet<>();
-
     private BaseProject project_;
 
     /**
@@ -109,6 +108,16 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             options_.remove("-d");
         }
         return this;
+    }
+
+    /**
+     * Retrieves a collection of files that are excluded based on specified criteria.
+     *
+     * @return a collection of files that are excluded
+     * @since 1.1.0
+     */
+    public Collection<File> exclude() {
+        return exclude_;
     }
 
     /**
@@ -193,6 +202,16 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     public CheckstyleOperation excludeRegex(Collection<String> regex) {
         excludeRegex_.addAll(regex);
         return this;
+    }
+
+    /**
+     * Retrieves the collection of strings that are set to be excluded based on the defined regular expressions.
+     *
+     * @return a collection of strings excluded by regular expressions
+     * @since 1.1.0
+     */
+    public Collection<String> excludeRegex() {
+        return excludeRegex_;
     }
 
     /**
