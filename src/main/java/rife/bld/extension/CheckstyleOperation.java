@@ -44,7 +44,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private BaseProject project_;
 
     /**
-     * Shows Abstract Syntax Tree(AST) branches that match given XPath query.
+     * Shows Abstract Syntax Tree(AST) branches that match the given XPath query.
      *
      * @param xPathQuery the xPath query
      * @return the checkstyle operation
@@ -58,7 +58,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
+     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
      * method. A configuration file is required.
      *
      * @param file the file
@@ -73,7 +73,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
+     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
      * method. A configuration file is required.
      *
      * @param file the file
@@ -85,7 +85,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location, or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
+     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
      * method. A configuration file is required.
      *
      * @param file the file
@@ -96,7 +96,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Prints all debug logging of Checkstyle utility.
+     * Prints all debug logging of the Checkstyle utility.
      *
      * @param isDebug {@code true} or {@code false}
      * @return the checkstyle operation
@@ -182,7 +182,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file pattern to exclude from Checkstyle. Multiple exclude are allowed.
+     * Directory/file pattern to exclude from Checkstyle. Multiple `exclude` are allowed.
      *
      * @param regex the pattern to exclude
      * @return the checkstyle operation
@@ -193,7 +193,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Directory/file pattern to exclude from Checkstyle. Multiple exclude are allowed.
+     * Directory/file pattern to exclude from Checkstyle. Multiple `exclude` are allowed.
      *
      * @param regex the patterns to exclude
      * @return the checkstyle operation
@@ -334,9 +334,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Generates to output a suppression xml that will have suppress elements with {@code checks} and {@code files}
+     * Generates to output a suppression XML that will have suppressed elements with {@code checks} and {@code files}
      * attributes only to use to suppress all violations from user's config. Instead of printing every violation, all
-     * violations will be catched and single suppressions xml file will be printed out. Used only with the
+     * violations will be caught and a single `suppressions` XML file will be printed out. Used only with the
      * {@link #configurationFile(String) configurationFile} option. Output location can be
      * specified with the {@link #outputPath(String) output} option.
      *
@@ -353,8 +353,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Generates to output a suppression xml to use to suppress all violations from user's config. Instead of printing
-     * every violation, all violations will be caught and single suppressions xml file will be printed out.
+     * Generates to output a suppression XML to use to suppress all violations from user's config. Instead of printing
+     * every violation, all violations will be caught and a single `suppressions` XML file will be printed out.
      * Used only with the {@link #configurationFile(String) configurationFile} option. Output location can be specified
      * with the {@link #outputPath(String) output} option.
      *
@@ -379,8 +379,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
-     * content excluding '&#47;**' and '*&#47;' at the beginning and at the end respectively. It can only be used on a
-     * single file and cannot be combined with other options.
+     * content excluding {@code &#47;**} and {@code *&#47;} at the beginning and at the end respectively. It can only
+     * be used on a single file and cannot be combined with other options.
      *
      * @param isTree {@code true} or {@code false}
      * @return the checkstyle operation
@@ -523,7 +523,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     /**
-     * Returns the file(s) or folders(s) containing the sources files to check
+     * Returns the file(s) or folders(s) containing the source files to check
      *
      * @return the files or directories
      */
@@ -555,11 +555,11 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Prints xpath suppressions at the file's line and column position. Argument is the line and column number
-     * (separated by a {@code :} ) in the file that the suppression should be generated for. The option cannot be
+     * (separated by a {@code :}) in the file that the suppression should be generated for. The option cannot be
      * used with other options and requires exactly one file to run on to be specified.
      * <p>
      * Note that the generated result will have few queries, joined by pipe({@code |}). Together they will match all
-     * AST nodes on specified line and column. You need to choose only one and recheck that it works. Usage of all of
+     * AST nodes on a specified line and column. You need to choose only one and recheck that it works. Using all of
      * them is also ok, but might result in undesirable matching and suppress other issues.
      *
      * @param lineColumnNumber the line column number
