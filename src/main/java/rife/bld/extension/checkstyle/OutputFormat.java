@@ -17,11 +17,20 @@
 package rife.bld.extension.checkstyle;
 
 /**
- * The Checkstyle output format for XML, sarif and default (plain) logger.
+ * The Checkstyle output format for XML, SARIF and default (plain) logger.
  */
 public enum OutputFormat {
+    /**
+     * Extensible Markup Language (XML) output format.
+     */
     XML("xml"),
+    /**
+     * Static Analysis Results Interchange Format (SARIF) output format.
+     */
     SARIF("sarif"),
+    /**
+     * Default (plain) output format.
+     */
     PLAIN("plain");
 
     public final String label;

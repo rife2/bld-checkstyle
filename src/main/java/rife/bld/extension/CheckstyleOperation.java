@@ -320,7 +320,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * Specifies the output format. Valid values: {@link OutputFormat#XML},
-     * {@link OutputFormat#SARIF}, {@link OutputFormat#PLAIN} for the XML, sarif and default logger
+     * {@link OutputFormat#SARIF}, {@link OutputFormat#PLAIN} for the XML, SARIF and default logger
      * respectively.
      * <p>
      * Defaults to {@link OutputFormat#PLAIN}.
