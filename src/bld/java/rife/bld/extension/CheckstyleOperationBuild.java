@@ -36,7 +36,8 @@ import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 public class CheckstyleOperationBuild extends Project {
     public CheckstyleOperationBuild() {
         pkg = "rife.bld.extension";
-        name = "CheckstyleOperation";
+        name = "Checkstyle";
+        archiveBaseName = "bld-checkstyle";
         version = version(1, 0, 16, "SNAPSHOT");
 
         javaRelease = 17;
@@ -72,9 +73,9 @@ public class CheckstyleOperationBuild extends Project {
                 .repository(repository("github"))
                 .info()
                 .groupId("com.uwyn.rife2")
-                .artifactId("bld-checkstyle")
+                .artifactId(archiveBaseName)
                 .description("Checkstyle Extension for bld")
-                .url("https://github.com/rife2/bld-checkstyle")
+                .url("https://github.com/rife2/" + archiveBaseName)
                 .developer(new PublishDeveloper()
                         .id("ethauvin")
                         .name("Erik C. Thauvin")
@@ -86,9 +87,9 @@ public class CheckstyleOperationBuild extends Project {
                         .url("https://www.apache.org/licenses/LICENSE-2.0.txt")
                 )
                 .scm(new PublishScm()
-                        .connection("scm:git:https://github.com/rife2/bld-checkstyle.git")
-                        .developerConnection("scm:git:git@github.com:rife2/bld-checkstyle.git")
-                        .url("https://github.com/rife2/bld-checkstyle")
+                        .connection("scm:git:https://github.com/rife2/" + archiveBaseName + ".git")
+                        .developerConnection("scm:git:git@github.com:rife2/" + archiveBaseName + ".git")
+                        .url("https://github.com/rife2/" + archiveBaseName)
                 )
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));
