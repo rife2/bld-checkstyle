@@ -1,4 +1,4 @@
-# [Checkstyle](https://checkstyle.sourceforge.io/) Extension for [b<span style="color:orange">l</span>d](https://rife2.com/bld)
+# [Checkstyle](https://checkstyle.sourceforge.io/) Extension for [bld](https://rife2.com/bld)
 
 [![License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java](https://img.shields.io/badge/java-17%2B-blue)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
@@ -7,13 +7,15 @@
 [![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-checkstyle/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-checkstyle)
 [![GitHub CI](https://github.com/rife2/bld-checkstyle/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-checkstyle/actions/workflows/bld.yml)
 
-To install the latest version, add the following to the `lib/bld/bld-wrapper.properties` file:
+To install the latest version, add the following to the
+`lib/bld/bld-wrapper.properties` file:
 
 ```properties
 bld.extension-checkstyle=com.uwyn.rife2:bld-checkstyle
 ```
 
-For more information, please refer to the [extensions](https://github.com/rife2/bld/wiki/Extensions) documentation.
+For more information, please refer to the
+[extensions](https://github.com/rife2/bld/wiki/Extensions) documentation.
 
 ## Check Source Code with Checkstyle
 
@@ -33,7 +35,7 @@ public void checkstyle() throws Exception {
 ./bld checkstyle
 ```
 
-- [View Examples](https://github.com/rife2/bld-checkstyle/blob/master/examples/src/bld/java/com/example/)
+- [View Examples](https://github.com/rife2/bld-checkstyle/blob/master/examples/)
 
 Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary)
 for all available configuration options.
@@ -45,5 +47,5 @@ not provided by the extension. For example:
 
 ```java
 repositories = List.of(MAVEN_CENTRAL);
-scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(11, 0, 1)));
+scope(test).include(dependency("com.puppycrawl.tools", "checkstyle", version(11, 1, 0)));
 ```
