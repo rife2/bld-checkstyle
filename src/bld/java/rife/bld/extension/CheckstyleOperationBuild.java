@@ -47,6 +47,7 @@ public class CheckstyleOperationBuild extends Project {
 
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
+        var junit = version(6, 0, 0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 3, 0)));
         scope(test)
@@ -54,10 +55,8 @@ public class CheckstyleOperationBuild extends Project {
                         version(0, 9, 3, "SNAPSHOT")))
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
                         version(11, 1, 0)))
-                .include(dependency("org.junit.jupiter", "junit-jupiter",
-                        version(5, 13, 4)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone",
-                        version(1, 13, 4)))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
                         version(3, 27, 6)));
 
