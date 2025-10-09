@@ -54,7 +54,7 @@ public class CheckstyleOperationBuild extends Project {
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
                         version(0, 9, 3, "SNAPSHOT")))
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
-                        version(11, 1, 0)))
+                        version(12, 0, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
