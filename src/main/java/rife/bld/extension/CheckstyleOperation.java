@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
 import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.operations.AbstractProcessOperation;
@@ -42,6 +43,84 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private final Map<String, String> options_ = new ConcurrentHashMap<>();
     private final Set<File> sourceDir_ = new TreeSet<>();
     private BaseProject project_;
+
+    @Override
+    public void execute() throws IOException, InterruptedException, ExitStatusException {
+        if (project_ == null) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("A project must be specified.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else {
+            super.execute();
+        }
+    }
+
+    /**
+     * Part of the {@link #execute} operation, constructs the command list
+     * to use for building the process.
+     */
+    @Override
+    protected List<String> executeConstructProcessCommandList() {
+        final List<String> args = new ArrayList<>();
+
+        if (project_ != null) {
+            if (sourceDir_.isEmpty()) {
+                sourceDir_.add(project_.srcMainJavaDirectory());
+                sourceDir_.add(project_.srcTestJavaDirectory());
+            }
+            args.add(javaTool());
+
+            args.add("-cp");
+            args.add(String.format("%s%s%s%s%s%s%s", new File(project_.libTestDirectory(), "*"),
+                    File.pathSeparator, new File(project_.libCompileDirectory(), "*"), File.pathSeparator,
+                    project_.buildMainDirectory(), File.pathSeparator, project_.buildTestDirectory()));
+            args.add("com.puppycrawl.tools.checkstyle.Main");
+
+            options_.forEach((k, v) -> {
+                args.add(k);
+                if (!v.isEmpty()) {
+                    args.add(v);
+                }
+            });
+
+            if (!exclude_.isEmpty()) {
+                for (var e : exclude_) {
+                    if (e.exists()) {
+                        args.add("-e");
+                        args.add(e.getAbsolutePath());
+                    }
+                }
+            }
+
+            if (!excludeRegex_.isEmpty()) {
+                for (var e : excludeRegex_) {
+                    if (isNotBlank(e)) {
+                        args.add("-x");
+                        args.add(e);
+                    }
+                }
+            }
+
+            args.addAll(sourceDir_.stream().map(File::getAbsolutePath).toList());
+
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.log(Level.FINE, String.join(" ", args));
+            }
+        }
+
+        return args;
+    }
+
+    /**
+     * Configures the {@link BaseProject}.
+     */
+    @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public CheckstyleOperation fromProject(BaseProject project) {
+        project_ = project;
+        return this;
+    }
 
     /**
      * Shows Abstract Syntax Tree(AST) branches that match the given XPath query.
@@ -116,6 +195,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return a collection of files that are excluded
      * @since 1.1.0
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<File> exclude() {
         return exclude_;
     }
@@ -210,6 +290,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return a collection of strings excluded by regular expressions
      * @since 1.1.0
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Collection<String> excludeRegex() {
         return excludeRegex_;
     }
@@ -224,83 +305,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     public CheckstyleOperation excludeStrings(Collection<String> paths) {
         return exclude(paths.stream().map(File::new).toList());
-    }
-
-    @Override
-    public void execute() throws IOException, InterruptedException, ExitStatusException {
-        if (project_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("A project must be specified.");
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else {
-            super.execute();
-        }
-    }
-
-    /**
-     * Part of the {@link #execute} operation, constructs the command list
-     * to use for building the process.
-     */
-    @Override
-    protected List<String> executeConstructProcessCommandList() {
-        final List<String> args = new ArrayList<>();
-
-        if (project_ != null) {
-            if (sourceDir_.isEmpty()) {
-                sourceDir_.add(project_.srcMainJavaDirectory());
-                sourceDir_.add(project_.srcTestJavaDirectory());
-            }
-            args.add(javaTool());
-
-            args.add("-cp");
-            args.add(String.format("%s%s%s%s%s%s%s", new File(project_.libTestDirectory(), "*"),
-                    File.pathSeparator, new File(project_.libCompileDirectory(), "*"), File.pathSeparator,
-                    project_.buildMainDirectory(), File.pathSeparator, project_.buildTestDirectory()));
-            args.add("com.puppycrawl.tools.checkstyle.Main");
-
-            options_.forEach((k, v) -> {
-                args.add(k);
-                if (!v.isEmpty()) {
-                    args.add(v);
-                }
-            });
-
-            if (!exclude_.isEmpty()) {
-                for (var e : exclude_) {
-                    if (e.exists()) {
-                        args.add("-e");
-                        args.add(e.getAbsolutePath());
-                    }
-                }
-            }
-
-            if (!excludeRegex_.isEmpty()) {
-                for (var e : excludeRegex_) {
-                    if (isNotBlank(e)) {
-                        args.add("-x");
-                        args.add(e);
-                    }
-                }
-            }
-
-            args.addAll(sourceDir_.stream().map(File::getAbsolutePath).toList());
-
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.log(Level.FINE, String.join(" ", args));
-            }
-        }
-
-        return args;
-    }
-
-    /**
-     * Configures the {@link BaseProject}.
-     */
-    @Override
-    public CheckstyleOperation fromProject(BaseProject project) {
-        project_ = project;
-        return this;
     }
 
     /**
@@ -370,13 +374,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return this;
     }
 
-    /*
-     * Determines if a string is not blank.
-     */
-    private boolean isNotBlank(String s) {
-        return s != null && !s.isBlank();
-    }
-
     /**
      * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
      * content excluding {@code &#47;**} and {@code *&#47;} at the beginning and at the end respectively. It can only
@@ -399,6 +396,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @return the command line options
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Map<String, String> options() {
         return options_;
     }
@@ -527,6 +525,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @return the files or directories
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Set<File> sourceDir() {
         return sourceDir_;
     }
@@ -632,5 +631,12 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             options_.remove("-J");
         }
         return this;
+    }
+
+    /*
+     * Determines if a string is not blank.
+     */
+    private boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
     }
 }
