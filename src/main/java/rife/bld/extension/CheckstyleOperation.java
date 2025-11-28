@@ -38,8 +38,8 @@ import java.util.logging.Logger;
  */
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
     private static final Logger LOGGER = Logger.getLogger(CheckstyleOperation.class.getName());
-    private final Collection<String> excludeRegex_ = new ArrayList<>();
-    private final Collection<File> exclude_ = new ArrayList<>();
+    private final List<String> excludeRegex_ = new ArrayList<>();
+    private final List<File> exclude_ = new ArrayList<>();
     private final Map<String, String> options_ = new ConcurrentHashMap<>();
     private final Set<File> sourceDir_ = new TreeSet<>();
     private BaseProject project_;
@@ -196,7 +196,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @since 1.1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<File> exclude() {
+    public List<File> exclude() {
         return exclude_;
     }
 
@@ -291,7 +291,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @since 1.1.0
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
-    public Collection<String> excludeRegex() {
+    public List<String> excludeRegex() {
         return excludeRegex_;
     }
 
