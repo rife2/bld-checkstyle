@@ -24,7 +24,6 @@ import rife.bld.publish.PublishScm;
 
 import java.io.File;
 import java.util.List;
-import java.util.Locale;
 
 import static rife.bld.dependencies.Repository.*;
 import static rife.bld.dependencies.Scope.*;
@@ -96,8 +95,7 @@ public class CheckstyleOperationBuild extends Project {
 
     @Override
     public void test() throws Exception {
-        var os = System.getProperty("os.name");
-        if (os != null && os.toLowerCase(Locale.US).contains("linux")) {
+        if (ExecOperation.isLinux()) {
             new ExecOperation()
                     .fromProject(this)
                     .command("scripts/cliargs.sh")
