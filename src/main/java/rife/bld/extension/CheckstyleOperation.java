@@ -19,6 +19,7 @@ package rife.bld.extension;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
 import rife.bld.extension.checkstyle.OutputFormat;
+import rife.bld.extension.tools.TextUtils;
 import rife.bld.operations.AbstractProcessOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -95,7 +96,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
             if (!excludeRegex_.isEmpty()) {
                 for (var e : excludeRegex_) {
-                    if (isNotBlank(e)) {
+                    if (TextUtils.isNotBlank(e)) {
                         args.add("-x");
                         args.add(e);
                     }
@@ -129,7 +130,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
-        if (isNotBlank(xPathQuery)) {
+        if (TextUtils.isNotBlank(xPathQuery)) {
             options_.put("-b", xPathQuery);
         }
         return this;
@@ -144,7 +145,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation configurationFile(String file) {
-        if (isNotBlank(file)) {
+        if (TextUtils.isNotBlank(file)) {
             options_.put("-c", file);
         }
         return this;
@@ -410,7 +411,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation outputPath(String file) {
-        if (isNotBlank(file)) {
+        if (TextUtils.isNotBlank(file)) {
             options_.put("-o", file);
         }
         return this;
@@ -447,7 +448,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation propertiesFile(String file) {
-        if (isNotBlank(file)) {
+        if (TextUtils.isNotBlank(file)) {
             options_.put("-p", file);
         }
         return this;
@@ -565,7 +566,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation suppressionLineColumnNumber(String lineColumnNumber) {
-        if (isNotBlank(lineColumnNumber)) {
+        if (TextUtils.isNotBlank(lineColumnNumber)) {
             options_.put("-s", lineColumnNumber);
         }
         return this;
@@ -631,12 +632,5 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
             options_.remove("-J");
         }
         return this;
-    }
-
-    /*
-     * Determines if a string is not blank.
-     */
-    private boolean isNotBlank(String s) {
-        return s != null && !s.isBlank();
     }
 }
