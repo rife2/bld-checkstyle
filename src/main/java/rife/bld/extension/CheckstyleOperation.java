@@ -38,6 +38,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
+
     private static final Logger LOGGER = Logger.getLogger(CheckstyleOperation.class.getName());
     private final List<String> excludeRegex_ = new ArrayList<>();
     private final List<File> exclude_ = new ArrayList<>();
@@ -80,7 +81,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
             options_.forEach((k, v) -> {
                 args.add(k);
-                if (!v.isEmpty()) {
+                if (TextUtils.isNotEmpty(v)) {
                     args.add(v);
                 }
             });
@@ -130,9 +131,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
-        if (TextUtils.isNotBlank(xPathQuery)) {
-            options_.put("-b", xPathQuery);
-        }
+        addOption("-b", xPathQuery);
         return this;
     }
 
@@ -145,9 +144,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation configurationFile(String file) {
-        if (TextUtils.isNotBlank(file)) {
-            options_.put("-c", file);
-        }
+        addOption("-c", file);
         return this;
     }
 
@@ -182,11 +179,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation debug(boolean isDebug) {
-        if (isDebug) {
-            options_.put("-d", "");
-        } else {
-            options_.remove("-d");
-        }
+        addOrRemoveOptionsKey("-d", isDebug);
         return this;
     }
 
@@ -315,11 +308,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
-        if (isAllowIgnoreModules) {
-            options_.put("-E", "");
-        } else {
-            options_.remove("-E");
-        }
+        addOrRemoveOptionsKey("-E", isAllowIgnoreModules);
         return this;
     }
 
@@ -349,11 +338,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation generateChecksAndFileSuppression(boolean generateChecksAndFileSuppression) {
-        if (generateChecksAndFileSuppression) {
-            options_.put("-G", "");
-        } else {
-            options_.remove("-G");
-        }
+        addOrRemoveOptionsKey("-G", generateChecksAndFileSuppression);
         return this;
     }
 
@@ -367,11 +352,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
-        if (xPathSuppression) {
-            options_.put("-g", "");
-        } else {
-            options_.remove("-g");
-        }
+        addOrRemoveOptionsKey("-g", xPathSuppression);
         return this;
     }
 
@@ -384,11 +365,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation javadocTree(boolean isTree) {
-        if (isTree) {
-            options_.put("-j", "");
-        } else {
-            options_.remove("-j");
-        }
+        addOrRemoveOptionsKey("-j", isTree);
         return this;
     }
 
@@ -411,9 +388,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation outputPath(String file) {
-        if (TextUtils.isNotBlank(file)) {
-            options_.put("-o", file);
-        }
+        addOption("-o", file);
         return this;
     }
 
@@ -448,9 +423,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation propertiesFile(String file) {
-        if (TextUtils.isNotBlank(file)) {
-            options_.put("-p", file);
-        }
+        addOption("-p", file);
         return this;
     }
 
@@ -566,9 +539,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation suppressionLineColumnNumber(String lineColumnNumber) {
-        if (TextUtils.isNotBlank(lineColumnNumber)) {
-            options_.put("-s", lineColumnNumber);
-        }
+        addOption("-s", lineColumnNumber);
         return this;
     }
 
@@ -594,11 +565,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation tree(boolean isTree) {
-        if (isTree) {
-            options_.put("-t", "");
-        } else {
-            options_.remove("-t");
-        }
+        addOrRemoveOptionsKey("-t", isTree);
         return this;
     }
 
@@ -610,11 +577,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation treeWithComments(boolean isTree) {
-        if (isTree) {
-            options_.put("-T", "");
-        } else {
-            options_.remove("-T");
-        }
+        addOrRemoveOptionsKey("-T", isTree);
         return this;
     }
 
@@ -626,11 +589,23 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return the checkstyle operation
      */
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
-        if (isTree) {
-            options_.put("-J", "");
-        } else {
-            options_.remove("-J");
-        }
+        addOrRemoveOptionsKey("-J", isTree);
         return this;
+    }
+
+    private void addOption(String key, String value) {
+        if (TextUtils.isNotBlank(value)) {
+            options_.put(key, value);
+        }
+    }
+
+    private void addOrRemoveOptionsKey(String key, boolean add) {
+        if (TextUtils.isNotBlank(key)) {
+            if (add) {
+                options_.put(key, "");
+            } else {
+                options_.remove(key);
+            }
+        }
     }
 }
