@@ -19,7 +19,8 @@ package rife.bld.extension;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
 import rife.bld.extension.checkstyle.OutputFormat;
-import rife.bld.extension.tools.TextUtils;
+import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractProcessOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 
@@ -81,7 +82,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
             options_.forEach((k, v) -> {
                 args.add(k);
-                if (TextUtils.isNotEmpty(v)) {
+                if (TextTools.isNotEmpty(v)) {
                     args.add(v);
                 }
             });
@@ -97,7 +98,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
             if (!excludeRegex_.isEmpty()) {
                 for (var e : excludeRegex_) {
-                    if (TextUtils.isNotBlank(e)) {
+                    if (TextTools.isNotBlank(e)) {
                         args.add("-x");
                         args.add(e);
                     }
@@ -203,7 +204,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeStrings(Collection)
      */
     public CheckstyleOperation exclude(String... path) {
-        return excludeStrings(List.of(path));
+        if (ObjectTools.isNotEmpty(path)) {
+            return excludeStrings(List.of(path));
+        }
+        return this;
     }
 
     /**
@@ -215,7 +219,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #exclude(Collection)
      */
     public CheckstyleOperation exclude(File... path) {
-        return exclude(List.of(path));
+        if (ObjectTools.isNotEmpty(path)) {
+            return exclude(List.of(path));
+        }
+        return this;
     }
 
     /**
@@ -227,7 +234,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludePaths(Collection)
      */
     public CheckstyleOperation exclude(Path... path) {
-        return excludePaths(List.of(path));
+        if (ObjectTools.isNotEmpty(path)) {
+            return excludePaths(List.of(path));
+        }
+        return this;
     }
 
     /**
@@ -239,7 +249,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #exclude(File...)
      */
     public CheckstyleOperation exclude(Collection<File> paths) {
-        exclude_.addAll(paths);
+        if (ObjectTools.isNotEmpty(paths)) {
+            exclude_.addAll(paths);
+        }
         return this;
     }
 
@@ -252,7 +264,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #exclude(Path...)
      */
     public CheckstyleOperation excludePaths(Collection<Path> paths) {
-        return exclude(paths.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(paths)) {
+            return exclude(paths.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -263,7 +278,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeRegex(Collection)
      */
     public CheckstyleOperation excludeRegex(String... regex) {
-        return excludeRegex(List.of(regex));
+        if (ObjectTools.isNotEmpty(regex)) {
+            return excludeRegex(List.of(regex));
+        }
+        return this;
     }
 
     /**
@@ -274,7 +292,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #excludeRegex(String...)
      */
     public CheckstyleOperation excludeRegex(Collection<String> regex) {
-        excludeRegex_.addAll(regex);
+        if (ObjectTools.isNotEmpty(regex)) {
+            excludeRegex_.addAll(regex);
+        }
         return this;
     }
 
@@ -298,7 +318,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #exclude(String...)
      */
     public CheckstyleOperation excludeStrings(Collection<String> paths) {
-        return exclude(paths.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(paths)) {
+            return exclude(paths.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -455,7 +478,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDirStrings(Collection)
      */
     public CheckstyleOperation sourceDir(String... dir) {
-        return sourceDirStrings(List.of(dir));
+        if (ObjectTools.isNotEmpty(dir)) {
+            return sourceDirStrings(List.of(dir));
+        }
+        return this;
     }
 
     /**
@@ -467,7 +493,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     @SuppressWarnings("UnusedReturnValue")
     public CheckstyleOperation sourceDir(File... dir) {
-        return sourceDir(List.of(dir));
+        if (ObjectTools.isNotEmpty(dir)) {
+            return sourceDir(List.of(dir));
+        }
+        return this;
     }
 
     /**
@@ -479,7 +508,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      */
     @SuppressWarnings("UnusedReturnValue")
     public CheckstyleOperation sourceDir(Path... dir) {
-        return sourceDirPaths(List.of(dir));
+        if (ObjectTools.isNotEmpty(dir)) {
+            return sourceDirPaths(List.of(dir));
+        }
+        return this;
     }
 
     /**
@@ -490,7 +522,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(File...)
      */
     public CheckstyleOperation sourceDir(Collection<File> dirs) {
-        sourceDir_.addAll(dirs);
+        if (ObjectTools.isNotEmpty(dirs)) {
+            sourceDir_.addAll(dirs);
+        }
         return this;
     }
 
@@ -512,7 +546,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(Path...)
      */
     public CheckstyleOperation sourceDirPaths(Collection<Path> dirs) {
-        return sourceDir(dirs.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(dirs)) {
+            return sourceDir(dirs.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -523,7 +560,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @see #sourceDir(String...)
      */
     public CheckstyleOperation sourceDirStrings(Collection<String> dirs) {
-        return sourceDir(dirs.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(dirs)) {
+            return sourceDir(dirs.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -594,13 +634,13 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     }
 
     private void addOption(String key, String value) {
-        if (TextUtils.isNotBlank(value)) {
+        if (TextTools.isNotBlank(value)) {
             options_.put(key, value);
         }
     }
 
     private void addOrRemoveOptionsKey(String key, boolean add) {
-        if (TextUtils.isNotBlank(key)) {
+        if (TextTools.isNotBlank(key)) {
             if (add) {
                 options_.put(key, "");
             } else {

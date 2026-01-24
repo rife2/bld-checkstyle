@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 @ExtendWith(LoggingExtension.class)
 class CheckstyleOperationTests {
+
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
@@ -63,6 +64,7 @@ class CheckstyleOperationTests {
     @Nested
     @DisplayName("Exclude Tests")
     class ExcludeTests {
+
         private static final String e = "-e ";
         private static final String x = "-x ";
         private final File srcMainJavaDir = new File(SRC_MAIN_JAVA);
@@ -157,6 +159,7 @@ class CheckstyleOperationTests {
     @Nested
     @DisplayName("Execute Tests")
     class ExecuteTests {
+
         @Test
         void execute() throws IOException, ExitStatusException, InterruptedException {
             var tmpFile = File.createTempFile("checkstyle-google", ".txt");
@@ -221,6 +224,7 @@ class CheckstyleOperationTests {
     @Nested
     @DisplayName("Options Tests")
     class OptionsTests {
+
         @Test
         void branchMatchingXpath() {
             var op = newCheckstyleOperation().branchMatchingXpath(FOO);
@@ -367,6 +371,7 @@ class CheckstyleOperationTests {
         @Nested
         @DisplayName("Source Dir Tests")
         class SourceDirTests {
+
             private final File bar = new File(BAR);
             private final File foo = new File(FOO);
             private final CheckstyleOperation op = newCheckstyleOperation().sourceDir(FOO, BAR);
