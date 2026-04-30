@@ -18,6 +18,9 @@ package rife.bld.extension.checkstyle;
 
 /**
  * The Checkstyle output format for XML, SARIF and default (plain) logger.
+ *
+ * @author <a href="https://erik.thauvin.net">Erik C. Thauvin</a>
+ * @since 1.0
  */
 public enum OutputFormat {
     /**
@@ -33,12 +36,33 @@ public enum OutputFormat {
      */
     PLAIN("plain");
 
-    public final String label;
+    private final String value;
+
+    OutputFormat(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 
     /**
-     * Sets the label of this output format.
+     * Parses a string into an {@code OutputFormat}.
+     *
+     * @param text the format name, case-insensitive
+     * @return the matching format, or {@link #PLAIN} if null
+     * @throws IllegalArgumentException if the format is unknown
      */
-    OutputFormat(String label) {
-        this.label = label;
+    public static OutputFormat fromString(String text) {
+        if (text == null) {
+            return PLAIN;
+        }
+        for (var format : values()) {
+            if (format.value.equalsIgnoreCase(text)) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("Unknown output format: " + text);
     }
 }

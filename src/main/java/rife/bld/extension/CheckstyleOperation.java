@@ -16,636 +16,709 @@
 
 package rife.bld.extension;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
 import rife.bld.extension.checkstyle.OutputFormat;
+import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractProcessOperation;
-import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Static code analysis using <a href="https://checkstyle.sourceforge.io/">Checkstyle</a>.
+ * Static code analysis operation using <a href="https://checkstyle.sourceforge.io/">Checkstyle</a>.
+ * <p>
+ * Provides a fluent API to configure and execute Checkstyle against Java source files.
+ * <p>
+ * Example usage:
+ * <pre>
+ * new CheckstyleOperation()
+ *     .fromProject(project)
+ *     .configurationFile("config/checkstyle.xml")
+ *     .format(OutputFormat.XML)
+ *     .outputPath("build/checkstyle.xml")
+ *     .execute();
+ * </pre>
  *
  * @author <a href="https://erik.thauvin.net">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "intentional and documented")
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
 
-    private static final Logger LOGGER = Logger.getLogger(CheckstyleOperation.class.getName());
+    private static final String EXCLUDE_NOT_VALID = "exclude values must not be empty or null";
+    private static final String REGEX_NOT_VALID = "exclude regex values must not be empty or null";
+    private static final String SOURCE_DIR_NOT_VALID = "source dir values must not be empty or null";
+    private static final Logger logger = Logger.getLogger(CheckstyleOperation.class.getName());
     private final List<String> excludeRegex_ = new ArrayList<>();
     private final List<File> exclude_ = new ArrayList<>();
-    private final Map<String, String> options_ = new ConcurrentHashMap<>();
-    private final Set<File> sourceDir_ = new TreeSet<>();
+    private final Map<String, String> options_ = new HashMap<>();
+    private final Set<File> sourceDir_ = new LinkedHashSet<>();
+
     private BaseProject project_;
 
-    @Override
-    public void execute() throws IOException, InterruptedException, ExitStatusException {
-        if (project_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("A project must be specified.");
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else {
-            super.execute();
-        }
-    }
-
     /**
-     * Part of the {@link #execute} operation, constructs the command list
-     * to use for building the process.
+     * Part of the {@link #execute} operation, constructs the command list to use for building the process.
+     *
+     * @return the list of command arguments
+     * @throws NullPointerException if {@link #fromProject(BaseProject)} was not called
      */
     @Override
+    @NonNull
     protected List<String> executeConstructProcessCommandList() {
-        final List<String> args = new ArrayList<>();
+        Objects.requireNonNull(project_, "project must not be null");
 
-        if (project_ != null) {
-            if (sourceDir_.isEmpty()) {
-                sourceDir_.add(project_.srcMainJavaDirectory());
-                sourceDir_.add(project_.srcTestJavaDirectory());
+        List<String> args = new ArrayList<>();
+
+        args.add(javaTool());
+
+        args.add("-cp");
+        var classpath = String.join(File.pathSeparator,
+                new File(project_.libTestDirectory(), "*").getPath(),
+                new File(project_.libCompileDirectory(), "*").getPath(),
+                project_.buildMainDirectory().getPath(),
+                project_.buildTestDirectory().getPath()
+        );
+        args.add(classpath);
+        args.add("com.puppycrawl.tools.checkstyle.Main");
+
+        options_.forEach((k, v) -> {
+            args.add(k);
+            if (TextTools.isNotEmpty(v)) {
+                args.add(v);
             }
-            args.add(javaTool());
+        });
 
-            args.add("-cp");
-            args.add(String.format("%s%s%s%s%s%s%s", new File(project_.libTestDirectory(), "*"),
-                    File.pathSeparator, new File(project_.libCompileDirectory(), "*"), File.pathSeparator,
-                    project_.buildMainDirectory(), File.pathSeparator, project_.buildTestDirectory()));
-            args.add("com.puppycrawl.tools.checkstyle.Main");
+        if (!exclude_.isEmpty()) {
+            for (var e : exclude_) {
+                args.add("-e");
+                args.add(e.getAbsolutePath());
+            }
+        }
 
-            options_.forEach((k, v) -> {
-                args.add(k);
-                if (TextTools.isNotEmpty(v)) {
-                    args.add(v);
-                }
+        if (!excludeRegex_.isEmpty()) {
+            excludeRegex_.forEach(e -> {
+                args.add("-x");
+                args.add(e);
             });
+        }
 
-            if (!exclude_.isEmpty()) {
-                for (var e : exclude_) {
-                    if (e.exists()) {
-                        args.add("-e");
-                        args.add(e.getAbsolutePath());
-                    }
-                }
-            }
-
-            if (!excludeRegex_.isEmpty()) {
-                for (var e : excludeRegex_) {
-                    if (TextTools.isNotBlank(e)) {
-                        args.add("-x");
-                        args.add(e);
-                    }
-                }
-            }
-
+        if (!sourceDir_.isEmpty()) {
             args.addAll(sourceDir_.stream().map(File::getAbsolutePath).toList());
+        }
 
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.log(Level.FINE, String.join(" ", args));
-            }
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, String.join(" ", args));
         }
 
         return args;
     }
 
     /**
-     * Configures the {@link BaseProject}.
+     * Configures the operation from a {@link BaseProject}.
+     * <p>
+     * Sets the {@link #sourceDir() source directories} to the project's
+     * {@link BaseProject#srcMainJavaDirectory() main} and
+     * {@link BaseProject#srcTestJavaDirectory() test} Java source directories.
+     *
+     * @param project the project to configure from, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code project} is {@code null}
      */
     @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public CheckstyleOperation fromProject(BaseProject project) {
-        project_ = project;
+    @NonNull
+    public CheckstyleOperation fromProject(@NonNull BaseProject project) {
+        project_ = Objects.requireNonNull(project, "project must not be null");
+        sourceDir_.clear();
+        sourceDir_.addAll(List.of(project_.srcMainJavaDirectory(), project_.srcTestJavaDirectory()));
         return this;
     }
 
     /**
-     * Shows Abstract Syntax Tree(AST) branches that match the given XPath query.
+     * Shows Abstract Syntax Tree (AST) branches that match the given XPath query.
+     * Corresponds to the {@code -b} option.
      *
-     * @param xPathQuery the xPath query
-     * @return the checkstyle operation
+     * @param xPathQuery the XPath query, must not be {@code null} or empty
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code xPathQuery} is {@code null} or empty
      */
-    public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
-        addOption("-b", xPathQuery);
-        return this;
+    @NonNull
+    public CheckstyleOperation branchMatchingXpath(@NonNull String xPathQuery) {
+        return opt("branch matching xpath", "-b", xPathQuery);
     }
 
     /**
-     * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
-     * method. A configuration file is required.
+     * Specifies the location of the Checkstyle configuration file.
+     * <p>
+     * The location can be a filesystem path or a name passed to
+     * {@link ClassLoader#getResource(String) ClassLoader.getResource()}.
+     * Corresponds to the {@code -c} option.
      *
-     * @param file the file
-     * @return the checkstyle operation
+     * @param file the configuration file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
      */
-    public CheckstyleOperation configurationFile(String file) {
-        addOption("-c", file);
-        return this;
+    @NonNull
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CheckstyleOperation configurationFile(@NonNull String file) {
+        Objects.requireNonNull(file, "configuration file must not be null");
+        return optFile("configuration file", "-c", new File(file));
     }
 
     /**
-     * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
-     * method. A configuration file is required.
+     * Specifies the location of the Checkstyle configuration file.
+     * Corresponds to the {@code -c} option.
      *
-     * @param file the file
-     * @return the checkstyle operation
+     * @param file the configuration file, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
      */
-    public CheckstyleOperation configurationFile(File file) {
-        return configurationFile(file.getAbsolutePath());
+    @NonNull
+    public CheckstyleOperation configurationFile(@NonNull File file) {
+        Objects.requireNonNull(file, "configuration file must not be null");
+        return optFile("configuration file", "-c", file);
     }
 
     /**
-     * Specifies the location of the file that defines the configuration modules. The location can either be a
-     * filesystem location or a name passed to the {@link ClassLoader#getResource(String) ClassLoader.getResource() }
-     * method. A configuration file is required.
+     * Specifies the location of the Checkstyle configuration file.
+     * Corresponds to the {@code -c} option.
      *
-     * @param file the file
-     * @return the checkstyle operation
+     * @param file the configuration file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
      */
-    public CheckstyleOperation configurationFile(Path file) {
-        return configurationFile(file.toFile().getAbsolutePath());
+    @NonNull
+    public CheckstyleOperation configurationFile(@NonNull Path file) {
+        Objects.requireNonNull(file, "configuration file must not be null");
+        return optFile("configuration file", "-c", file.toFile());
     }
 
     /**
-     * Prints all debug logging of the Checkstyle utility.
+     * Enables or disables debug logging for the Checkstyle utility.
+     * Corresponds to the {@code -d} option.
      *
-     * @param isDebug {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param isDebug {@code true} to enable debug logging, {@code false} to disable
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation debug(boolean isDebug) {
-        addOrRemoveOptionsKey("-d", isDebug);
-        return this;
+        return optBool("-d", isDebug);
     }
 
     /**
-     * Retrieves a collection of files that are excluded based on specified criteria.
+     * Retrieves the list of files and directories excluded from analysis.
      *
-     * @return a collection of files that are excluded
+     * @return a mutable list of excluded files
      * @since 1.1.0
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
+    @NonNull
     public List<File> exclude() {
         return exclude_;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param path one or more paths
-     * @return the checkstyle operation
-     * @see #excludeStrings(Collection)
+     * @param paths the paths to exclude, must not contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null} or empty values
      */
-    public CheckstyleOperation exclude(String... path) {
-        if (ObjectTools.isNotEmpty(path)) {
-            return excludeStrings(List.of(path));
-        }
+    @NonNull
+    public CheckstyleOperation exclude(@NonNull String... paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param path one or more paths
-     * @return the checkstyle operation
-     * @see #exclude(Collection)
+     * @param paths the files to exclude, must not contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation exclude(File... path) {
-        if (ObjectTools.isNotEmpty(path)) {
-            return exclude(List.of(path));
-        }
+    @NonNull
+    public CheckstyleOperation exclude(@NonNull File... paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(List.of(paths));
         return this;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param path one or more paths
-     * @return the checkstyle operation
-     * @see #excludePaths(Collection)
+     * @param paths the paths to exclude, must not contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation exclude(Path... path) {
-        if (ObjectTools.isNotEmpty(path)) {
-            return excludePaths(List.of(path));
-        }
+    @NonNull
+    public CheckstyleOperation exclude(@NonNull Path... paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param paths the paths
-     * @return the checkstyle operation
-     * @see #exclude(File...)
+     * @param paths the collection of files to exclude, must not be {@code null} or contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation exclude(Collection<File> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            exclude_.addAll(paths);
-        }
+    @NonNull
+    public CheckstyleOperation exclude(@NonNull Collection<File> paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(paths);
         return this;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param paths the paths
-     * @return the checkstyle operation
-     * @see #exclude(Path...)
+     * @param paths the collection of paths to exclude, must not be {@code null} or contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation excludePaths(Collection<Path> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return exclude(paths.stream().map(Path::toFile).toList());
-        }
+    @NonNull
+    public CheckstyleOperation excludePaths(@NonNull Collection<Path> paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
 
     /**
-     * Directory/file pattern to exclude from Checkstyle. Multiple `exclude` are allowed.
+     * Specifies directory or file patterns to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -x} option. Replaces any previously set exclude patterns.
      *
-     * @param regex the pattern to exclude
-     * @return the checkstyle operation
-     * @see #excludeRegex(Collection)
+     * @param patterns the regex patterns to exclude, must not contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code patterns} is {@code null} or contains {@code null} or empty values
      */
-    public CheckstyleOperation excludeRegex(String... regex) {
-        if (ObjectTools.isNotEmpty(regex)) {
-            return excludeRegex(List.of(regex));
-        }
+    @NonNull
+    public CheckstyleOperation excludeRegex(@NonNull String... patterns) {
+        ObjectTools.requireAllNotEmpty(patterns, REGEX_NOT_VALID);
+        excludeRegex_.clear();
+        excludeRegex_.addAll(List.of(patterns));
         return this;
     }
 
     /**
-     * Directory/file pattern to exclude from Checkstyle. Multiple `exclude` are allowed.
+     * Specifies directory or file patterns to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -x} option. Replaces any previously set exclude patterns.
      *
-     * @param regex the patterns to exclude
-     * @return the checkstyle operation
-     * @see #excludeRegex(String...)
+     * @param patterns the collection of regex patterns to exclude, must not be {@code null} or contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code patterns} is {@code null} or contains {@code null} or empty values
      */
-    public CheckstyleOperation excludeRegex(Collection<String> regex) {
-        if (ObjectTools.isNotEmpty(regex)) {
-            excludeRegex_.addAll(regex);
-        }
+    @NonNull
+    public CheckstyleOperation excludeRegex(@NonNull Collection<String> patterns) {
+        ObjectTools.requireAllNotEmpty(patterns, REGEX_NOT_VALID);
+        excludeRegex_.clear();
+        excludeRegex_.addAll(patterns);
         return this;
     }
 
     /**
-     * Retrieves the collection of strings that are set to be excluded based on the defined regular expressions.
+     * Retrieves the list of regex patterns excluded from analysis.
      *
-     * @return a collection of strings excluded by regular expressions
-     * @since 1.1.0
+     * @return a mutable list of exclude regex patterns
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
+    @NonNull
     public List<String> excludeRegex() {
         return excludeRegex_;
     }
 
     /**
-     * Directory/file to exclude from Checkstyle. The path can be the full, absolute path, or relative to the current
-     * path. Multiple excludes are allowed.
+     * Specifies directories or files to exclude from Checkstyle analysis.
+     * Corresponds to the {@code -e} option. Replaces any previously set excludes.
      *
-     * @param paths the paths
-     * @return the checkstyle operation
-     * @see #exclude(String...)
+     * @param paths the collection of path strings to exclude, must not be {@code null} or contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code paths} is {@code null} or contains {@code null} or empty values
      */
-    public CheckstyleOperation excludeStrings(Collection<String> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return exclude(paths.stream().map(File::new).toList());
-        }
+    @NonNull
+    public CheckstyleOperation excludeStrings(@NonNull Collection<String> paths) {
+        ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
+        exclude_.clear();
+        exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
 
     /**
-     * Allows ignored modules to be run.
+     * Allows ignored modules to be executed.
+     * Corresponds to the {@code -E} option.
      *
-     * @param isAllowIgnoreModules {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param isAllowIgnoreModules {@code true} to execute ignored modules, {@code false} to skip them
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
-        addOrRemoveOptionsKey("-E", isAllowIgnoreModules);
+        return optBool("-E", isAllowIgnoreModules);
+    }
+
+    /**
+     * Specifies the output format for Checkstyle results.
+     * Corresponds to the {@code -f} option.
+     *
+     * @param format the output format, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code format} is {@code null}
+     */
+    @NonNull
+    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+    public CheckstyleOperation format(@NonNull OutputFormat format) {
+        Objects.requireNonNull(format, "format must not be null");
+        options_.put("-f", format.toString());
         return this;
     }
 
     /**
-     * Specifies the output format. Valid values: {@link OutputFormat#XML},
-     * {@link OutputFormat#SARIF}, {@link OutputFormat#PLAIN} for the XML, SARIF and default logger
-     * respectively.
-     * <p>
-     * Defaults to {@link OutputFormat#PLAIN}.
+     * Generates suppression XML files for checks and files.
+     * Corresponds to the {@code -G} option.
      *
-     * @param format the output format
-     * @return the checkstyle operation
+     * @param generateChecksAndFileSuppression {@code true} to generate suppression XML, {@code false} otherwise
+     * @return this operation instance
      */
-    public CheckstyleOperation format(OutputFormat format) {
-        options_.put("-f", format.label.toLowerCase());
-        return this;
-    }
-
-    /**
-     * Generates to output a suppression XML that will have suppressed elements with {@code checks} and {@code files}
-     * attributes only to use to suppress all violations from user's config. Instead of printing every violation, all
-     * violations will be caught and a single `suppressions` XML file will be printed out. Used only with the
-     * {@link #configurationFile(String) configurationFile} option. Output location can be
-     * specified with the {@link #outputPath(String) output} option.
-     *
-     * @param generateChecksAndFileSuppression {@code true} or {@code false}
-     * @return the checkstyle operation
-     */
+    @NonNull
     public CheckstyleOperation generateChecksAndFileSuppression(boolean generateChecksAndFileSuppression) {
-        addOrRemoveOptionsKey("-G", generateChecksAndFileSuppression);
-        return this;
+        return optBool("-G", generateChecksAndFileSuppression);
     }
 
     /**
-     * Generates to output a suppression XML to use to suppress all violations from user's config. Instead of printing
-     * every violation, all violations will be caught and a single `suppressions` XML file will be printed out.
-     * Used only with the {@link #configurationFile(String) configurationFile} option. Output location can be specified
-     * with the {@link #outputPath(String) output} option.
+     * Generates XPath suppression XML.
+     * Corresponds to the {@code -g} option.
      *
-     * @param xPathSuppression {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param xPathSuppression {@code true} to generate XPath suppression XML, {@code false} otherwise
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
-        addOrRemoveOptionsKey("-g", xPathSuppression);
-        return this;
+        return optBool("-g", xPathSuppression);
     }
 
     /**
-     * This option is used to print the Parse Tree of the Javadoc comment. The file has to contain only Javadoc comment
-     * content excluding {@code &#47;**} and {@code *&#47;} at the beginning and at the end respectively. It can only
-     * be used on a single file and cannot be combined with other options.
+     * Prints the Javadoc parse tree.
+     * Corresponds to the {@code -j} option.
      *
-     * @param isTree {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param isTree {@code true} to print the Javadoc tree, {@code false} otherwise
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation javadocTree(boolean isTree) {
-        addOrRemoveOptionsKey("-j", isTree);
-        return this;
+        return optBool("-j", isTree);
     }
 
     /**
-     * Returns the command line options.
+     * Returns the mutable map of command line options.
+     * <p>
+     * Modifying this map bypasses validation. Use with care. Intended for advanced
+     * configuration and passing options not exposed by the fluent API.
      *
-     * @return the command line options
+     * @return the mutable options map
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
+    @NonNull
     public Map<String, String> options() {
         return options_;
     }
 
     /**
-     * Sets the output file.
-     * <p>
-     * Defaults to stdout.
+     * Sets the output file for Checkstyle results.
+     * Corresponds to the {@code -o} option.
      *
-     * @param file the output file
-     * @return the checkstyle operation
+     * @param file the output file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
      */
-    public CheckstyleOperation outputPath(String file) {
-        addOption("-o", file);
+    @NonNull
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CheckstyleOperation outputPath(@NonNull String file) {
+        Objects.requireNonNull(file, "output path must not be null");
+        return optFile("output path", "-o", new File(file));
+    }
+
+    /**
+     * Sets the output file for Checkstyle results.
+     * Corresponds to the {@code -o} option.
+     *
+     * @param file the output file, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    @NonNull
+    public CheckstyleOperation outputPath(@NonNull File file) {
+        Objects.requireNonNull(file, "output file must not be null");
+        return optFile("output path", "-o", file);
+    }
+
+    /**
+     * Sets the output file for Checkstyle results.
+     * Corresponds to the {@code -o} option.
+     *
+     * @param file the output file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    @NonNull
+    public CheckstyleOperation outputPath(@NonNull Path file) {
+        Objects.requireNonNull(file, "output path must not be null");
+        return optFile("output path", "-o", file.toFile());
+    }
+
+    /**
+     * Sets the properties file for Checkstyle.
+     * Corresponds to the {@code -p} option.
+     *
+     * @param file the properties file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    @NonNull
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CheckstyleOperation propertiesFile(@NonNull String file) {
+        Objects.requireNonNull(file, "property file must not be null");
+        return optFile("properties file", "-p", new File(file));
+    }
+
+    /**
+     * Sets the properties file for Checkstyle.
+     * Corresponds to the {@code -p} option.
+     *
+     * @param file the properties file, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    @NonNull
+    public CheckstyleOperation propertiesFile(@NonNull File file) {
+        Objects.requireNonNull(file, "property file must not be null");
+        return optFile("properties file", "-p", file);
+    }
+
+    /**
+     * Sets the properties file for Checkstyle.
+     * Corresponds to the {@code -p} option.
+     *
+     * @param file the properties file path, must not be {@code null}
+     * @return this operation instance
+     * @throws NullPointerException if {@code file} is {@code null}
+     */
+    @NonNull
+    public CheckstyleOperation propertiesFile(@NonNull Path file) {
+        Objects.requireNonNull(file, "property file must not be null");
+        return optFile("properties file", "-p", file.toFile());
+    }
+
+    /**
+     * Specifies source directories to analyze. Replaces any previously set source directories.
+     *
+     * @param dirs the directory paths, must not contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null} or empty values
+     */
+    @NonNull
+    public CheckstyleOperation sourceDir(@NonNull String... dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
         return this;
     }
 
     /**
-     * Sets the output file.
-     * <p>
-     * Defaults to stdout.
+     * Specifies source directories to analyze. Replaces any previously set source directories.
      *
-     * @param file the output file
-     * @return the checkstyle operation
+     * @param dirs the directories, must not contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation outputPath(File file) {
-        return outputPath(file.getAbsolutePath());
-    }
-
-    /**
-     * Sets the output file.
-     * <p>
-     * Defaults to stdout.
-     *
-     * @param file the output file
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation outputPath(Path file) {
-        return outputPath(file.toFile().getAbsolutePath());
-    }
-
-    /**
-     * Sets the property files to load.
-     *
-     * @param file the file
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation propertiesFile(String file) {
-        addOption("-p", file);
+    @NonNull
+    public CheckstyleOperation sourceDir(@NonNull File... dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(List.of(dirs));
         return this;
     }
 
     /**
-     * Sets the property files to load.
+     * Specifies source directories to analyze. Replaces any previously set source directories.
      *
-     * @param file the file
-     * @return the checkstyle operation
+     * @param dirs the directory paths, must not contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation propertiesFile(File file) {
-        return propertiesFile(file.getAbsolutePath());
-    }
-
-    /**
-     * Sets the property files to load.
-     *
-     * @param file the file
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation propertiesFile(Path file) {
-        return propertiesFile(file.toFile().getAbsolutePath());
-    }
-
-    /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
-     *
-     * @param dir one or more directories
-     * @return the checkstyle operation
-     * @see #sourceDirStrings(Collection)
-     */
-    public CheckstyleOperation sourceDir(String... dir) {
-        if (ObjectTools.isNotEmpty(dir)) {
-            return sourceDirStrings(List.of(dir));
-        }
+    @NonNull
+    public CheckstyleOperation sourceDir(@NonNull Path... dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
         return this;
     }
 
     /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
+     * Specifies source directories to analyze. Replaces any previously set source directories.
      *
-     * @param dir one or more directories
-     * @return the checkstyle operation
-     * @see #sourceDir(Collection)
+     * @param dirs the collection of directories, must not be {@code null} or contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public CheckstyleOperation sourceDir(File... dir) {
-        if (ObjectTools.isNotEmpty(dir)) {
-            return sourceDir(List.of(dir));
-        }
+    @NonNull
+    public CheckstyleOperation sourceDir(@NonNull Collection<File> dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(dirs);
         return this;
     }
 
     /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
+     * Returns the set of source directories to analyze.
      *
-     * @param dir one or more directories
-     * @return the checkstyle operation
-     * @see #sourceDirPaths(Collection)
+     * @return a mutable set of source directories
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public CheckstyleOperation sourceDir(Path... dir) {
-        if (ObjectTools.isNotEmpty(dir)) {
-            return sourceDirPaths(List.of(dir));
-        }
-        return this;
-    }
-
-    /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
-     *
-     * @param dirs the directories
-     * @return the checkstyle operation
-     * @see #sourceDir(File...)
-     */
-    public CheckstyleOperation sourceDir(Collection<File> dirs) {
-        if (ObjectTools.isNotEmpty(dirs)) {
-            sourceDir_.addAll(dirs);
-        }
-        return this;
-    }
-
-    /**
-     * Returns the file(s) or folders(s) containing the source files to check
-     *
-     * @return the files or directories
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
+    @NonNull
     public Set<File> sourceDir() {
         return sourceDir_;
     }
 
     /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
+     * Specifies source directories to analyze. Replaces any previously set source directories.
      *
-     * @param dirs the directories
-     * @return the checkstyle operation
-     * @see #sourceDir(Path...)
+     * @param dirs the collection of directory paths, must not be {@code null} or contain {@code null}
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
      */
-    public CheckstyleOperation sourceDirPaths(Collection<Path> dirs) {
-        if (ObjectTools.isNotEmpty(dirs)) {
-            return sourceDir(dirs.stream().map(Path::toFile).toList());
+    @NonNull
+    public CheckstyleOperation sourceDirPaths(@NonNull Collection<Path> dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
+        return this;
+    }
+
+    /**
+     * Specifies source directories to analyze. Replaces any previously set source directories.
+     *
+     * @param dirs the collection of directory path strings, must not be {@code null} or contain {@code null} or empty values
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null} or empty values
+     */
+    @NonNull
+    public CheckstyleOperation sourceDirStrings(@NonNull Collection<String> dirs) {
+        ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
+        sourceDir_.clear();
+        sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
+        return this;
+    }
+
+    /**
+     * Prints XPath suppressions for a specific line and column.
+     * Corresponds to the {@code -s} option.
+     *
+     * @param line   the line number, must not be negative
+     * @param column the column number, must not be negative
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code line} or {@code column} is negative
+     */
+    @NonNull
+    public CheckstyleOperation suppressionLineColumnNumber(int line, int column) {
+        requireNonNegative(line, "suppression line number");
+        requireNonNegative(column, "suppression column number");
+        options_.put("-s", line + ":" + column);
+        return this;
+    }
+
+    /**
+     * Sets the tab width for column reporting.
+     * <p>
+     * A value of {@code 0} disables tab expansion, causing tabs to be counted as a single character.
+     * Corresponds to the {@code -w} option. Default is 8 if not set.
+     *
+     * @param length the tab width, must not be negative
+     * @return this operation instance
+     * @throws IllegalArgumentException if {@code length} is negative
+     */
+    @NonNull
+    public CheckstyleOperation tabWidth(int length) {
+        if (length >= 0) {
+            options_.put("-w", String.valueOf(length));
+        } else {
+            throw new IllegalArgumentException("tab width must be greater than or equal to 0");
         }
         return this;
     }
 
     /**
-     * Specifies the file(s) or folder(s) containing the source files to check.
+     * Prints the Abstract Syntax Tree without comments.
+     * Corresponds to the {@code -t} option.
      *
-     * @param dirs the directories
-     * @return the checkstyle operation
-     * @see #sourceDir(String...)
+     * @param isTree {@code true} to print the AST, {@code false} otherwise
+     * @return this operation instance
      */
-    public CheckstyleOperation sourceDirStrings(Collection<String> dirs) {
-        if (ObjectTools.isNotEmpty(dirs)) {
-            return sourceDir(dirs.stream().map(File::new).toList());
-        }
-        return this;
-    }
-
-    /**
-     * Prints xpath suppressions at the file's line and column position. Argument is the line and column number
-     * (separated by a {@code :}) in the file that the suppression should be generated for. The option cannot be
-     * used with other options and requires exactly one file to run on to be specified.
-     * <p>
-     * Note that the generated result will have few queries, joined by pipe({@code |}). Together they will match all
-     * AST nodes on a specified line and column. You need to choose only one and recheck that it works. Using all of
-     * them is also ok, but might result in undesirable matching and suppress other issues.
-     *
-     * @param lineColumnNumber the line column number
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation suppressionLineColumnNumber(String lineColumnNumber) {
-        addOption("-s", lineColumnNumber);
-        return this;
-    }
-
-    /**
-     * Sets the length of the tab character. Used only with the
-     * {@link #suppressionLineColumnNumber(String) suppressionLineColumnNumber} option.
-     * <p>
-     * Default value is {@code 8}.
-     *
-     * @param length the length
-     * @return the checkstyle operation
-     */
-    public CheckstyleOperation tabWith(int length) {
-        options_.put("-w", String.valueOf(length));
-        return this;
-    }
-
-    /**
-     * This option is used to display the Abstract Syntax Tree (AST) without any comments of the specified file. It can
-     * only be used on a single file and cannot be combined with other options.
-     *
-     * @param isTree {@code true} or {@code false}
-     * @return the checkstyle operation
-     */
+    @NonNull
     public CheckstyleOperation tree(boolean isTree) {
-        addOrRemoveOptionsKey("-t", isTree);
-        return this;
+        return optBool("-t", isTree);
     }
 
     /**
-     * This option is used to display the Abstract Syntax Tree (AST) with comment nodes excluding Javadoc of the
-     * specified file. It can only be used on a single file and cannot be combined with other options.
+     * Prints the Abstract Syntax Tree with comment nodes included.
+     * Corresponds to the {@code -T} option.
      *
-     * @param isTree {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param isTree {@code true} to print the AST with comments, {@code false} otherwise
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation treeWithComments(boolean isTree) {
-        addOrRemoveOptionsKey("-T", isTree);
-        return this;
+        return optBool("-T", isTree);
     }
 
     /**
-     * This option is used to display the Abstract Syntax Tree (AST) with Javadoc nodes of the specified file. It can
-     * only be used on a single file and cannot be combined with other options.
+     * Prints the Abstract Syntax Tree with Javadoc nodes included.
+     * Corresponds to the {@code -J} option.
      *
-     * @param isTree {@code true} or {@code false}
-     * @return the checkstyle operation
+     * @param isTree {@code true} to print the AST with Javadoc, {@code false} otherwise
+     * @return this operation instance
      */
+    @NonNull
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
-        addOrRemoveOptionsKey("-J", isTree);
+        return optBool("-J", isTree);
+    }
+
+    private CheckstyleOperation opt(String label, String key, String value) {
+        ObjectTools.requireNotEmpty(value, label + " must not be null or empty");
+        options_.put(key, value);
         return this;
     }
 
-    private void addOption(String key, String value) {
-        if (TextTools.isNotBlank(value)) {
-            options_.put(key, value);
+    private CheckstyleOperation optBool(String key, boolean enable) {
+        if (enable) {
+            options_.put(key, "");
+        } else {
+            options_.remove(key);
         }
+        return this;
     }
 
-    private void addOrRemoveOptionsKey(String key, boolean add) {
-        if (TextTools.isNotBlank(key)) {
-            if (add) {
-                options_.put(key, "");
-            } else {
-                options_.remove(key);
-            }
+    private CheckstyleOperation optFile(String label, String key, File file) {
+        Objects.requireNonNull(file, label + " must not be null");
+        return opt(label, key, file.getAbsolutePath());
+    }
+
+    private void requireNonNegative(int value, String label) {
+        if (value < 0) {
+            throw new IllegalArgumentException(label + " must not be negative");
         }
     }
 }

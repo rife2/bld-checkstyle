@@ -47,15 +47,13 @@ class CheckstyleOperationTests {
     private static final String ADD = "add";
     private static final String BAR = "bar";
     private static final String FOO = "foo";
-
-    @RegisterExtension
-    @SuppressWarnings({"unused"})
-    private static final LoggingExtension LOGGING_EXTENSION =
-            new LoggingExtension(CheckstyleOperation.class.getName());
-
     private static final String REMOVE = "remove";
     private static final String SRC_MAIN_JAVA = "src/main/java";
     private static final String SRC_TEST_JAVA = "src/test/java";
+    @RegisterExtension
+    @SuppressWarnings({"unused"})
+    private static final LoggingExtension loggingExtension =
+            new LoggingExtension(CheckstyleOperation.class.getName());
 
     private CheckstyleOperation newCheckstyleOperation() {
         return new CheckstyleOperation().fromProject(new Project());
@@ -186,9 +184,9 @@ class CheckstyleOperationTests {
                     .startsWith("java -cp ")
                     .endsWith(
                             "com.puppycrawl.tools.checkstyle.Main " +
-                                    "-p config/checkstyle.properties " +
+                                    "-p " + new File("config/checkstyle.properties").getAbsolutePath() + " " +
                                     "-b xpath " +
-                                    "-c config/checkstyle.xml " +
+                                    "-c " + new File("config/checkstyle.xml").getAbsolutePath() + " " +
                                     "-d -E " +
                                     new File(SRC_MAIN_JAVA).getAbsolutePath() + " " +
                                     new File(SRC_TEST_JAVA).getAbsolutePath());
@@ -205,7 +203,7 @@ class CheckstyleOperationTests {
         @Test
         void executeNoProject() {
             var op = new CheckstyleOperation();
-            assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
+            assertThatCode(op::execute).isInstanceOf(NullPointerException.class);
         }
 
         @Test
@@ -251,8 +249,8 @@ class CheckstyleOperationTests {
                     .javadocTree(true)
                     .outputPath(new File("optionPath"))
                     .propertiesFile(new File("properties"))
-                    .suppressionLineColumnNumber("12")
-                    .tabWith(1)
+                    .suppressionLineColumnNumber(12, 4)
+                    .tabWidth(1)
                     .tree(true)
                     .treeWithComments(true)
                     .treeWithJavadoc(true)
@@ -275,7 +273,7 @@ class CheckstyleOperationTests {
         @Test
         void configurationFile() {
             var op = newCheckstyleOperation().configurationFile(FOO);
-            assertThat(op.options().get("-c")).isEqualTo(FOO);
+            assertThat(op.options().get("-c")).isEqualTo(new File(FOO).getAbsolutePath());
         }
 
         @Test
@@ -319,28 +317,28 @@ class CheckstyleOperationTests {
         @Test
         void outputPath() {
             var op = newCheckstyleOperation().outputPath(FOO);
-            assertThat(op.options().get("-o")).isEqualTo(FOO);
+            assertThat(op.options().get("-o")).isEqualTo(new File(FOO).getAbsolutePath());
         }
 
         @Test
         void propertiesFile() {
+            var foo = new File("foo");
             var op = newCheckstyleOperation().propertiesFile(FOO);
-            assertThat(op.options().get("-p")).isEqualTo(FOO);
+            assertThat(op.options().get("-p")).isEqualTo(foo.getAbsolutePath());
 
-            var fooPath = Path.of(FOO);
-            op = op.propertiesFile(fooPath);
-            assertThat(op.options().get("-p")).isEqualTo(fooPath.toFile().getAbsolutePath());
+            op = op.propertiesFile(foo.toPath());
+            assertThat(op.options().get("-p")).isEqualTo(foo.getAbsolutePath());
         }
 
         @Test
         void suppressionLineColumnNumber() {
-            var op = newCheckstyleOperation().suppressionLineColumnNumber(FOO + ':' + BAR);
-            assertThat(op.options().get("-s")).isEqualTo(FOO + ':' + BAR);
+            var op = newCheckstyleOperation().suppressionLineColumnNumber(12, 6);
+            assertThat(op.options().get("-s")).isEqualTo(12 + ":" + 6);
         }
 
         @Test
         void tabWith() {
-            var op = newCheckstyleOperation().tabWith(9);
+            var op = newCheckstyleOperation().tabWidth(9);
             assertThat(op.options().get("-w")).isEqualTo("9");
         }
 
@@ -374,48 +372,42 @@ class CheckstyleOperationTests {
 
             private final File bar = new File(BAR);
             private final File foo = new File(FOO);
-            private final CheckstyleOperation op = newCheckstyleOperation().sourceDir(FOO, BAR);
 
             @Test
             void sourceDirFromFileArray() {
-                op.sourceDir(foo, bar);
+                var op = newCheckstyleOperation();
+                op = op.sourceDir(foo, bar);
                 assertThat(op.sourceDir()).as("File...").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
 
             @Test
             void sourceDirFromFileList() {
-                op.sourceDir(List.of(foo, bar));
+                var op = newCheckstyleOperation().sourceDir(List.of(foo, bar));
                 assertThat(op.sourceDir()).as("List(File...)").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
 
             @Test
             void sourceDirFromPathArray() {
-                op.sourceDir(foo.toPath(), bar.toPath());
+                var op = newCheckstyleOperation().sourceDir(foo.toPath(), bar.toPath());
                 assertThat(op.sourceDir()).as("Path...").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
 
             @Test
             void sourceDirFromPathList() {
-                op.sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
+                var op = newCheckstyleOperation().sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
                 assertThat(op.sourceDir()).as("List(Path...)").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
 
             @Test
             void sourceDirFromStringArray() {
-                op.sourceDir("foo", "bar");
+                var op = newCheckstyleOperation().sourceDir("foo", "bar");
                 assertThat(op.sourceDir()).as("String...").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
 
             @Test
             void sourceDirFromStringList() {
-                op.sourceDirStrings(List.of(FOO, BAR));
+                var op = newCheckstyleOperation().sourceDirStrings(List.of(FOO, BAR));
                 assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
-                op.sourceDir().clear();
             }
         }
     }

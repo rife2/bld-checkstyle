@@ -47,7 +47,7 @@ public class CheckstyleOperationBuild extends Project {
         var junit = version(6, 0, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(0, 9, 0)))
+                        version(1, 2, 0)))
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(2, 3, 1, "SNAPSHOT")));
         scope(provided)
@@ -55,7 +55,7 @@ public class CheckstyleOperationBuild extends Project {
                         version(4, 9, 8)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
-                        version(0, 9, 6)))
+                        version(1, 0, 1)))
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
                         version(13, 4, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
@@ -68,7 +68,8 @@ public class CheckstyleOperationBuild extends Project {
                 .author()
                 .docLint(NO_MISSING)
                 .link("https://rife2.github.io/bld/")
-                .link("https://rife2.github.io/rife2/");
+                .link("https://rife2.github.io/rife2/")
+                .link("https://findbugs.sourceforge.net/api/");
 
         publishOperation()
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))
