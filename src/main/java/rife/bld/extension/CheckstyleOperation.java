@@ -52,7 +52,8 @@ import java.util.logging.Logger;
 @SuppressFBWarnings(
         value = "EI_EXPOSE_REP",
         justification = "Builder pattern intentionally exposes mutable collections"
-)public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
+)
+public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
 
     private static final String EXCLUDE_NOT_VALID = "exclude values must not be empty or null";
     private static final String REGEX_NOT_VALID = "exclude regex values must not be empty or null";
@@ -137,7 +138,9 @@ import java.util.logging.Logger;
     @NonNull
     public CheckstyleOperation fromProject(@NonNull BaseProject project) {
         project_ = Objects.requireNonNull(project, "project must not be null");
-        sourceDir_.addAll(List.of(project_.srcMainJavaDirectory(), project_.srcTestJavaDirectory()));
+        if (sourceDir_.isEmpty()) {
+            sourceDir_.addAll(List.of(project_.srcMainJavaDirectory(), project_.srcTestJavaDirectory()));
+        }
         return this;
     }
 

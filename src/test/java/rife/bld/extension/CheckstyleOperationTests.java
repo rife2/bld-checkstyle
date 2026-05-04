@@ -173,13 +173,14 @@ class CheckstyleOperationTests {
 
         @Test
         void executeConstructProcessCommandList() {
-            var op = new CheckstyleOperation().fromProject(new BaseProject())
+            var op = new CheckstyleOperation()
                     .configurationFile("config/checkstyle.xml")
                     .branchMatchingXpath("xpath")
                     .propertiesFile("config/checkstyle.properties")
                     .debug(true)
                     .executeIgnoredModules(true)
-                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA);
+                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
+                    .fromProject(new BaseProject());
             assertThat(String.join(" ", op.executeConstructProcessCommandList()))
                     .startsWith("java -cp ")
                     .endsWith(
@@ -375,38 +376,49 @@ class CheckstyleOperationTests {
 
             @Test
             void sourceDirFromFileArray() {
-                var op = newCheckstyleOperation();
-                op = op.sourceDir(foo, bar);
+                var op = new CheckstyleOperation()
+                        .sourceDir(foo, bar)
+                        .fromProject(new Project());
                 assertThat(op.sourceDir()).as("File...").hasSize(2).contains(foo, bar);
             }
 
             @Test
             void sourceDirFromFileList() {
-                var op = newCheckstyleOperation().sourceDir(List.of(foo, bar));
+                var op = new CheckstyleOperation()
+                        .sourceDir(List.of(foo, bar))
+                        .fromProject(new Project());
                 assertThat(op.sourceDir()).as("List(File...)").hasSize(2).contains(foo, bar);
             }
 
             @Test
             void sourceDirFromPathArray() {
-                var op = newCheckstyleOperation().sourceDir(foo.toPath(), bar.toPath());
+                var op = new CheckstyleOperation()
+                        .sourceDir(foo.toPath(), bar.toPath())
+                        .fromProject(new BaseProject());
                 assertThat(op.sourceDir()).as("Path...").hasSize(2).contains(foo, bar);
             }
 
             @Test
             void sourceDirFromPathList() {
-                var op = newCheckstyleOperation().sourceDirPaths(List.of(foo.toPath(), bar.toPath()));
+                var op = new CheckstyleOperation()
+                        .sourceDirPaths(List.of(foo.toPath(), bar.toPath()))
+                        .fromProject(new Project());
                 assertThat(op.sourceDir()).as("List(Path...)").hasSize(2).contains(foo, bar);
             }
 
             @Test
             void sourceDirFromStringArray() {
-                var op = newCheckstyleOperation().sourceDir("foo", "bar");
+                var op = new CheckstyleOperation()
+                        .sourceDir("foo", "bar")
+                        .fromProject(new Project());
                 assertThat(op.sourceDir()).as("String...").hasSize(2).contains(foo, bar);
             }
 
             @Test
             void sourceDirFromStringList() {
-                var op = newCheckstyleOperation().sourceDirStrings(List.of(FOO, BAR));
+                var op = new CheckstyleOperation()
+                        .sourceDirStrings(List.of(FOO, BAR))
+                        .fromProject(new Project());
                 assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
             }
         }
