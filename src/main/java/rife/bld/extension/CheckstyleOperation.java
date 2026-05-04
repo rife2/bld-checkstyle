@@ -49,8 +49,10 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net">Erik C. Thauvin</a>
  * @since 1.0
  */
-@SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "intentional and documented")
-public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
+@SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "Builder pattern intentionally exposes mutable collections"
+)public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
 
     private static final String EXCLUDE_NOT_VALID = "exclude values must not be empty or null";
     private static final String REGEX_NOT_VALID = "exclude regex values must not be empty or null";
@@ -125,7 +127,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * <p>
      * Sets the {@link #sourceDir() source directories} to the project's
      * {@link BaseProject#srcMainJavaDirectory() main} and
-     * {@link BaseProject#srcTestJavaDirectory() test} Java source directories.
+     * {@link BaseProject#srcTestJavaDirectory() test} Java source directories, if not already set.
      *
      * @param project the project to configure from, must not be {@code null}
      * @return this operation instance
@@ -135,7 +137,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation fromProject(@NonNull BaseProject project) {
         project_ = Objects.requireNonNull(project, "project must not be null");
-        sourceDir_.clear();
         sourceDir_.addAll(List.of(project_.srcMainJavaDirectory(), project_.srcTestJavaDirectory()));
         return this;
     }
@@ -233,7 +234,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation exclude(@NonNull String... paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
@@ -249,7 +249,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation exclude(@NonNull File... paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(List.of(paths));
         return this;
     }
@@ -265,7 +264,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation exclude(@NonNull Path... paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
@@ -281,7 +279,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation exclude(@NonNull Collection<File> paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(paths);
         return this;
     }
@@ -297,7 +294,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation excludePaths(@NonNull Collection<Path> paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
@@ -313,7 +309,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation excludeRegex(@NonNull String... patterns) {
         ObjectTools.requireAllNotEmpty(patterns, REGEX_NOT_VALID);
-        excludeRegex_.clear();
         excludeRegex_.addAll(List.of(patterns));
         return this;
     }
@@ -329,7 +324,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation excludeRegex(@NonNull Collection<String> patterns) {
         ObjectTools.requireAllNotEmpty(patterns, REGEX_NOT_VALID);
-        excludeRegex_.clear();
         excludeRegex_.addAll(patterns);
         return this;
     }
@@ -355,7 +349,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation excludeStrings(@NonNull Collection<String> paths) {
         ObjectTools.requireAllNotEmpty(paths, EXCLUDE_NOT_VALID);
-        exclude_.clear();
         exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
@@ -533,7 +526,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull String... dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
         return this;
     }
@@ -548,7 +540,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull File... dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(List.of(dirs));
         return this;
     }
@@ -563,7 +554,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull Path... dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
         return this;
     }
@@ -578,7 +568,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull Collection<File> dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(dirs);
         return this;
     }
@@ -603,7 +592,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDirPaths(@NonNull Collection<Path> dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
         return this;
     }
@@ -618,7 +606,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @NonNull
     public CheckstyleOperation sourceDirStrings(@NonNull Collection<String> dirs) {
         ObjectTools.requireAllNotEmpty(dirs, SOURCE_DIR_NOT_VALID);
-        sourceDir_.clear();
         sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
         return this;
     }
