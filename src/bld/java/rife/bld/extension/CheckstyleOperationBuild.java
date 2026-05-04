@@ -35,7 +35,7 @@ public class CheckstyleOperationBuild extends Project {
         pkg = "rife.bld.extension";
         name = "Checkstyle";
         archiveBaseName = "bld-checkstyle";
-        version = version(1, 1, 1);
+        version = version(1, 1, 5, "SNAPSHOT");
 
         javaRelease = 17;
 
@@ -57,7 +57,7 @@ public class CheckstyleOperationBuild extends Project {
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
                         version(1, 0, 1)))
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
-                        version(13, 4, 1)))
+                        version(13, 4, 2)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
