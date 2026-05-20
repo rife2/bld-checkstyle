@@ -42,12 +42,12 @@ public class CheckstyleOperationBuild extends Project {
         downloadSources = true;
         autoDownloadPurge = true;
 
-        repositories = List.of(MAVEN_CENTRAL, CENTRAL_SNAPSHOTS, RIFE2_RELEASES);
+        repositories = List.of(MAVEN_CENTRAL, CENTRAL_SNAPSHOTS, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
         var junit = version(6, 1, 0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 2, 0)))
+                        version(1, 3, 0, "SNAPSHOT")))
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(2, 3, 1, "SNAPSHOT")));
         scope(provided)
@@ -119,9 +119,9 @@ public class CheckstyleOperationBuild extends Project {
     @BuildCommand(summary = "Runs PMD analysis")
     public void pmd() throws Exception {
         new PmdOperation()
-                .fromProject(this)
                 .failOnViolation(true)
                 .ruleSets("config/pmd.xml")
+                .fromProject(this)
                 .execute();
     }
 
