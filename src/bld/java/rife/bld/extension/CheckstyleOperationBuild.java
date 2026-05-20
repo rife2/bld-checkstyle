@@ -44,7 +44,7 @@ public class CheckstyleOperationBuild extends Project {
 
         repositories = List.of(MAVEN_CENTRAL, CENTRAL_SNAPSHOTS, RIFE2_RELEASES);
 
-        var junit = version(6, 0, 3);
+        var junit = version(6, 1, 0);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
                         version(1, 2, 0)))
