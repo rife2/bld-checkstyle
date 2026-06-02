@@ -233,8 +233,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the paths to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation exclude(@NonNull String... paths) {
@@ -248,8 +248,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the files to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is {@code null}, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      */
     @NonNull
     public CheckstyleOperation exclude(@NonNull File... paths) {
@@ -263,8 +263,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the paths to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is {@code null}, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      */
     @NonNull
     public CheckstyleOperation exclude(@NonNull Path... paths) {
@@ -278,8 +278,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the collection of files to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is {@code null}
-     * @throws IllegalArgumentException if {@code paths} is {@code null}, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      */
     @NonNull
     public CheckstyleOperation exclude(@NonNull Collection<File> paths) {
@@ -293,8 +293,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param paths the collection of paths to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is null
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty
      */
     @NonNull
     public CheckstyleOperation excludePaths(@NonNull Collection<Path> paths) {
@@ -308,8 +308,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param patterns the regex patterns to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code patterns} is {@code null}
-     * @throws IllegalArgumentException if {@code patterns} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code patterns} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code patterns} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation excludeRegex(@NonNull String... patterns) {
@@ -323,8 +323,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param patterns the collection of regex patterns to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code patterns} is {@code null}
-     * @throws IllegalArgumentException if {@code patterns} is {@code null} or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code patterns} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code patterns} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation excludeRegex(@NonNull Collection<String> patterns) {
@@ -346,10 +346,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Specifies directories or files to exclude from Checkstyle analysis.
      *
-     * @param paths the collection of path strings to exclude or empty values
+     * @param paths the collection of path strings to exclude
      * @return this operation instance
-     * @throws NullPointerException     if {@code paths} is null
-     * @throws IllegalArgumentException if {@code paths} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code paths} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation excludeStrings(@NonNull Collection<String> paths) {
@@ -526,7 +526,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the directory paths
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null} or empty values
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull String... dirs) {
@@ -540,7 +541,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the directories
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty
      */
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull File... dirs) {
@@ -554,7 +556,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the directory paths
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty
      */
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull Path... dirs) {
@@ -568,7 +571,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the collection of directories
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty
      */
     @NonNull
     public CheckstyleOperation sourceDir(@NonNull Collection<File> dirs) {
@@ -592,7 +596,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @param dirs the collection of directory paths
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null}
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty
      */
     @NonNull
     public CheckstyleOperation sourceDirPaths(@NonNull Collection<Path> dirs) {
@@ -604,9 +609,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Specifies source directories to analyze.
      *
-     * @param dirs the collection of directory path strings or empty values
+     * @param dirs the collection of directory path strings
      * @return this operation instance
-     * @throws IllegalArgumentException if {@code dirs} is {@code null} or contains {@code null} or empty values
+     * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code dirs} is empty, or contains empty elements
      */
     @NonNull
     public CheckstyleOperation sourceDirStrings(@NonNull Collection<String> dirs) {

@@ -24,6 +24,9 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.WebProject;
@@ -36,12 +39,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(LoggingExtension.class)
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CheckstyleOperationTests {
 
     private static final String ADD = "add";
@@ -421,6 +427,167 @@ class CheckstyleOperationTests {
                         .fromProject(new Project());
                 assertThat(op.sourceDir()).as("List(String...)").hasSize(2).contains(foo, bar);
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation Tests")
+    @SuppressWarnings("DataFlowIssue")
+    class ValidationTests {
+
+        @ParameterizedTest
+        @EmptySource
+        void branchMatchingXpathWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().branchMatchingXpath(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void branchMatchingXpathWithNull() {
+            assertThatThrownBy(() -> new CheckstyleOperation().branchMatchingXpath(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void configurationFileWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().configurationFile(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void configurationFileWithNull() {
+            assertThatThrownBy(() -> new CheckstyleOperation().configurationFile((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().configurationFile((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void excludeRegexWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void excludeRegexWithNull(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex((String[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeRegex((Collection<String>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void excludeWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeStrings(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeStrings(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void excludeWithNull(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().excludeStrings(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude((File[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().exclude((Collection<File>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void fromProjectWithNull() {
+            assertThatThrownBy(() -> new CheckstyleOperation().fromProject(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void outputPathWithNull() {
+            assertThatThrownBy(() -> new CheckstyleOperation().outputPath((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().outputPath((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().outputPath((String) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void propertiesFileWithNull() {
+            assertThatThrownBy(() -> new CheckstyleOperation().propertiesFile((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().propertiesFile((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().propertiesFile((String) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void sourceDirWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDirStrings(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDirStrings(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void sourceDirWithNull(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDirStrings(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir((File[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CheckstyleOperation().sourceDir((Collection<File>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void suppressionLineColumnNumberWithNegative() {
+            assertThatThrownBy(() -> new CheckstyleOperation().suppressionLineColumnNumber(-1, 0))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("line");
+            assertThatThrownBy(() -> new CheckstyleOperation().suppressionLineColumnNumber(0, -1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("column");
+        }
+
+        @Test
+        void tabWidthWithNegative() {
+            assertThatThrownBy(() -> new CheckstyleOperation().tabWidth(-1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("tabWidth");
         }
     }
 }
