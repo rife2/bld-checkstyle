@@ -29,10 +29,10 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.BaseProject;
 import rife.bld.Project;
-import rife.bld.WebProject;
 import rife.bld.extension.checkstyle.OutputFormat;
-import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.operations.exceptions.ExitStatusException;
+import rife.bld.testing.BlankSource;
+import rife.bld.testing.LoggingExtension;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +45,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static rife.bld.dependencies.Repository.MAVEN_CENTRAL;
+import static rife.bld.dependencies.Repository.RIFE2_RELEASES;
+import static rife.bld.dependencies.Scope.test;
 
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 class CheckstyleOperationTests {
 
     private static final String ADD = "add";
@@ -58,11 +61,27 @@ class CheckstyleOperationTests {
     private static final String SRC_TEST_JAVA = "src/test/java";
     @RegisterExtension
     @SuppressWarnings({"unused"})
-    private static final LoggingExtension loggingExtension =
-            new LoggingExtension(CheckstyleOperation.class.getName());
+    private static final LoggingExtension loggingExtension = new LoggingExtension(CheckstyleOperation.class.getName());
 
     private CheckstyleOperation newCheckstyleOperation() {
-        return new CheckstyleOperation().fromProject(new Project());
+        return new CheckstyleOperation().fromProject(new TestProject());
+    }
+
+    @SuppressWarnings("PMD")
+    static class TestProject extends BaseProject {
+
+        TestProject() {
+            workDirectory = new File("src/test/resources/TestProject");
+            pkg = "com.example";
+            name = "TestProject";
+            version = version(0, 1, 0);
+
+            autoDownloadPurge = true;
+
+            repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
+
+            scope(test).include(dependency("com.puppycrawl.tools", "checkstyle"));
+        }
     }
 
     @Nested
@@ -165,12 +184,10 @@ class CheckstyleOperationTests {
     class ExecuteTests {
 
         @Test
-        void execute() throws IOException, ExitStatusException, InterruptedException {
+        void execute() throws Exception {
             var tmpFile = File.createTempFile("checkstyle-google", ".txt");
             tmpFile.deleteOnExit();
-            var op = new CheckstyleOperation()
-                    .fromProject(new WebProject())
-                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
+            var op = newCheckstyleOperation()
                     .configurationFile(Path.of("src/test/resources/google_checks.xml"))
                     .outputPath(tmpFile.toPath());
             op.execute();
@@ -179,14 +196,12 @@ class CheckstyleOperationTests {
 
         @Test
         void executeConstructProcessCommandList() {
-            var op = new CheckstyleOperation()
+            var op = newCheckstyleOperation()
                     .configurationFile("config/checkstyle.xml")
                     .branchMatchingXpath("xpath")
                     .propertiesFile("config/checkstyle.properties")
                     .debug(true)
-                    .executeIgnoredModules(true)
-                    .sourceDir(SRC_MAIN_JAVA, SRC_TEST_JAVA)
-                    .fromProject(new BaseProject());
+                    .executeIgnoredModules(true);
             assertThat(String.join(" ", op.executeConstructProcessCommandList()))
                     .startsWith("java -cp ")
                     .endsWith(
@@ -195,8 +210,8 @@ class CheckstyleOperationTests {
                                     "-b xpath " +
                                     "-c " + new File("config/checkstyle.xml").getAbsolutePath() + " " +
                                     "-d -E " +
-                                    new File(SRC_MAIN_JAVA).getAbsolutePath() + " " +
-                                    new File(SRC_TEST_JAVA).getAbsolutePath());
+                                    new File("src/test/resources/TestProject", SRC_MAIN_JAVA).getAbsolutePath() + " " +
+                                    new File("src/test/resources/TestProject", SRC_TEST_JAVA).getAbsolutePath());
         }
 
         @Test
@@ -264,15 +279,15 @@ class CheckstyleOperationTests {
                     .executeConstructProcessCommandList();
 
             try (var softly = new AutoCloseableSoftAssertions()) {
-                for (var p : args) {
+                for (var arg : args) {
                     var found = false;
-                    for (var a : params) {
-                        if (a.startsWith(p)) {
+                    for (var param : params) {
+                        if (param.startsWith(arg)) {
                             found = true;
                             break;
                         }
                     }
-                    softly.assertThat(found).as("%s not found.", p).isTrue();
+                    softly.assertThat(found).as("%s not found.", arg).isTrue();
                 }
             }
         }
@@ -436,7 +451,7 @@ class CheckstyleOperationTests {
     class ValidationTests {
 
         @ParameterizedTest
-        @EmptySource
+        @BlankSource
         void branchMatchingXpathWithEmpty(String arg) {
             assertThatThrownBy(() -> new CheckstyleOperation().branchMatchingXpath(arg))
                     .isInstanceOf(IllegalArgumentException.class);
@@ -449,7 +464,7 @@ class CheckstyleOperationTests {
         }
 
         @ParameterizedTest
-        @EmptySource
+        @BlankSource
         void configurationFileWithEmpty(String arg) {
             assertThatThrownBy(() -> new CheckstyleOperation().configurationFile(arg))
                     .isInstanceOf(IllegalArgumentException.class);

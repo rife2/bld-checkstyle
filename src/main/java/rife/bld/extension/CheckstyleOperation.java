@@ -19,9 +19,11 @@ package rife.bld.extension;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
+import rife.bld.dependencies.Scope;
 import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.PathTools;
 import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractProcessOperation;
 
@@ -75,20 +77,15 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @Override
     @NonNull
     protected List<String> executeConstructProcessCommandList() {
-        ObjectTools.requireNonNull(project_, "execute");
+        ObjectTools.requireNonNull(project_, "project");
 
         List<String> args = new ArrayList<>();
 
         args.add(javaTool());
 
         args.add("-cp");
-        var classpath = String.join(File.pathSeparator,
-                new File(project_.libTestDirectory(), "*").getPath(),
-                new File(project_.libCompileDirectory(), "*").getPath(),
-                project_.buildMainDirectory().getPath(),
-                project_.buildTestDirectory().getPath()
-        );
-        args.add(classpath);
+        args.add(PathTools.joinClasspath(
+                project_.dependencyClasspathJars(Scope.test, "com.puppycrawl.tools", "checkstyle")));
         args.add("com.puppycrawl.tools.checkstyle.Main");
 
         options_.forEach((k, v) -> {
@@ -117,7 +114,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         }
 
         if (!silent() && logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, String.join(" ", args));
+            logger.fine(PathTools.formatCommandLine(args));
         }
 
         return args;
@@ -706,11 +703,5 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private CheckstyleOperation optFile(String label, String key, File file) {
         ObjectTools.requireNonNull(file, label);
         return opt(label, key, file.getAbsolutePath());
-    }
-
-    private void requireNonNegative(int value, String label) {
-        if (value < 0) {
-            throw new IllegalArgumentException(label + " must not be negative");
-        }
     }
 }

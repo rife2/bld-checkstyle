@@ -23,6 +23,7 @@ import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.*;
@@ -121,6 +122,7 @@ public class CheckstyleOperationBuild extends Project {
         new PmdOperation()
                 .failOnViolation(true)
                 .ruleSets("config/pmd.xml")
+                .excludes(Path.of("src/test/resources/TestProject").toAbsolutePath())
                 .fromProject(this)
                 .execute();
     }
