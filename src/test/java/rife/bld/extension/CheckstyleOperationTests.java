@@ -29,6 +29,8 @@ import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.BaseProject;
 import rife.bld.Project;
+import rife.bld.dependencies.Repository;
+import rife.bld.dependencies.Scope;
 import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.bld.testing.BlankSource;
@@ -45,12 +47,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static rife.bld.dependencies.Repository.MAVEN_CENTRAL;
-import static rife.bld.dependencies.Repository.RIFE2_RELEASES;
-import static rife.bld.dependencies.Scope.test;
 
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals"})
 class CheckstyleOperationTests {
 
     private static final String ADD = "add";
@@ -78,9 +77,9 @@ class CheckstyleOperationTests {
 
             autoDownloadPurge = true;
 
-            repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
+            repositories = List.of(Repository.MAVEN_CENTRAL, Repository.RIFE2_RELEASES);
 
-            scope(test).include(dependency("com.puppycrawl.tools", "checkstyle"));
+            scope(Scope.test).include(dependency("com.puppycrawl.tools", "checkstyle"));
         }
     }
 
