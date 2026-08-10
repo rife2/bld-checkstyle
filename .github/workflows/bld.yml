@@ -39,6 +39,10 @@ jobs:
       - name: Compile source code
         run: ./bld clean compile
 
+      - name: Compile test project
+        working-directory: src/test/resources/TestProject
+        run: ./bld clean compile
+
       - name: Run tests
         id: tests
         run: ./bld test

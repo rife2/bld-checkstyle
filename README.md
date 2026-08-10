@@ -48,5 +48,5 @@ not provided by the extension. For example:
 ```java
 repositories = List.of(MAVEN_CENTRAL);
 scope(test)
-    .include(dependency("com.puppycrawl.tools", "checkstyle", version(13, 4, 2)));
+    .include(dependency("com.puppycrawl.tools", "checkstyle", version(14, 1, 0)));
 ```

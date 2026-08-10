@@ -21,7 +21,7 @@ public class TestProjectBuild extends Project {
 
         scope(test)
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
-                        version(13, 9, 0)));
+                        version(14, 1, 0)));
     }
 
     public static void main(String[] args) {
