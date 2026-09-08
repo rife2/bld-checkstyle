@@ -50,7 +50,7 @@ public class CheckstyleOperationBuild extends Project {
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
                         version(1, 3, 0, "SNAPSHOT")))
                 .include(dependency("com.uwyn.rife2", "bld",
-                        version(2, 4, 0, "SNAPSHOT")));
+                        version(3, 0, 0, "SNAPSHOT")));
         scope(provided)
                 .include(dependency("org.jspecify", "jspecify", "1.0.1"))
                 .include(dependency("com.github.spotbugs", "spotbugs-annotations",
