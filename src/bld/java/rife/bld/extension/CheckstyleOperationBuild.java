@@ -48,7 +48,7 @@ public class CheckstyleOperationBuild extends Project {
         var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 3, 0, "SNAPSHOT")))
+                        version(1, 3, 0)))
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(3, 0, 0, "SNAPSHOT")));
         scope(provided)
