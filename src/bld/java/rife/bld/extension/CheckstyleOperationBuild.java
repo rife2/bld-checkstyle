@@ -56,7 +56,7 @@ public class CheckstyleOperationBuild extends Project {
                         version(4, 10, 4)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-testing-helpers",
-                        version(1, 1, 0)))
+                        version(1, 1, 1)))
                 .include(dependency("com.puppycrawl.tools", "checkstyle",
                         version(14, 1, 0)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
