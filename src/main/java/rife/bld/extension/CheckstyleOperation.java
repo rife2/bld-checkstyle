@@ -374,7 +374,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code format} is {@code null}
      */
-
+    @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
     public CheckstyleOperation format(OutputFormat format) {
         ObjectTools.requireNonNull(format, "format");
         options_.put("-f", format.toString());

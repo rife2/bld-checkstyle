@@ -10,6 +10,7 @@
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="pmd" />
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="reporter" />
     <pattern value="rife.bld.extension.CheckstyleOperationBuild" method="spotbugs" />
+    <pattern value="com.example.TestProject" method="getMessage" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">

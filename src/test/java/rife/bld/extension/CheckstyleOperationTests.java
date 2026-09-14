@@ -189,7 +189,7 @@ class CheckstyleOperationTests {
             var op = newCheckstyleOperation()
                     .configurationFile(Path.of("src/test/resources/google_checks.xml"))
                     .outputPath(tmpFile.toPath());
-            op.execute();
+            assertThatCode(op::execute).doesNotThrowAnyException();
             assertThat(tmpFile).as("tmp file should exist").exists();
         }
 
