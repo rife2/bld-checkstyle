@@ -36,7 +36,7 @@ public class CheckstyleOperationBuild extends Project {
         pkg = "rife.bld.extension";
         name = "Checkstyle";
         archiveBaseName = "bld-checkstyle";
-        version = version(1, 2, 0);
+        version = version(1, 2, 1, "SNAPSHOT");
 
         javaRelease = 17;
 
@@ -48,7 +48,7 @@ public class CheckstyleOperationBuild extends Project {
         var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 3, 0)))
+                        version(1, 4, 0)))
                 .include(dependency("com.uwyn.rife2", "bld", version(3, 0, 1)));
         scope(provided)
                 .include(dependency("org.jspecify", "jspecify", "1.0.1"))
