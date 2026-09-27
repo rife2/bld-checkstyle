@@ -4,7 +4,7 @@ main="com.puppycrawl.tools.checkstyle.Main"
 new=/tmp/checkcliargs-new
 old=/tmp/checkcliargs-old
 
-java -cp "lib/test/*" $main --help >$new
+java -cp "src/test/resources/TestProject/lib/test/*" $main --help >$new
 java -cp "examples/lib/test/*" $main --help >$old
 
 if [ "$1" == "-v" ]; then
