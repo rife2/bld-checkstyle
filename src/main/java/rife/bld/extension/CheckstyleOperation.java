@@ -61,6 +61,8 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     /**
      * The default Checkstyle version.
+     * <p>
+     * Currently: 14.4.0
      */
     public static final Version CHECKSTYLE_VERSION = new VersionNumber(14, 4, 0);
 

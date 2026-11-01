@@ -34,10 +34,6 @@ public class TestProjectBuild extends Project {
         autoDownloadPurge = true;
 
         repositories = List.of(MAVEN_CENTRAL, RIFE2_RELEASES);
-
-        scope(test)
-                .include(dependency("com.puppycrawl.tools", "checkstyle",
-                        version(14, 3, 0)));
     }
 
     public static void main(String[] args) {

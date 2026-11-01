@@ -45,7 +45,8 @@ for all available configuration options.
 The Checkstyle dependency is resolved automatically by the extension, so you no longer
 need to declare it in your build file.
 
-By default, the extension uses the value of `CheckstyleOperation.CHECKSTYLE_VERSION`.
+By default, the extension uses the value of 
+[`CheckstyleOperation.CHECKSTYLE_VERSION`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#CHECKSTYLE_VERSION).
 To pin a specific release, use the `version` method:
 
 ```java
