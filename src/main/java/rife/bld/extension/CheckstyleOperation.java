@@ -20,12 +20,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import rife.bld.BaseProject;
-import rife.bld.dependencies.Scope;
+import rife.bld.dependencies.Dependency;
+import rife.bld.dependencies.Repository;
+import rife.bld.dependencies.Version;
+import rife.bld.dependencies.VersionNumber;
 import rife.bld.extension.checkstyle.OutputFormat;
-import rife.bld.extension.tools.CollectionTools;
-import rife.bld.extension.tools.ObjectTools;
-import rife.bld.extension.tools.PathTools;
-import rife.bld.extension.tools.TextTools;
+import rife.bld.extension.tools.*;
 import rife.bld.operations.AbstractProcessOperation;
 
 import java.io.File;
@@ -59,8 +59,14 @@ import java.util.logging.Logger;
 @NullMarked
 public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOperation> {
 
+    /**
+     * The default Checkstyle version.
+     */
+    public static final Version CHECKSTYLE_VERSION = new VersionNumber(14, 4, 0);
+
     private static final String EXCLUDE = "exclude";
     private static final String EXCLUDE_REGEX = "excludeRegex";
+    private static final List<Repository> REPOSITORIES = List.of(Repository.MAVEN_CENTRAL);
     private static final String SOURCE_DIR = "sourceDir";
     private static final Logger logger = Logger.getLogger(CheckstyleOperation.class.getName());
     private final List<String> excludeRegex_ = new ArrayList<>();
@@ -69,6 +75,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private final Set<File> sourceDir_ = new LinkedHashSet<>();
 
     private @Nullable BaseProject project_;
+    private Version version_ = CHECKSTYLE_VERSION;
 
     /**
      * Part of the {@link #execute} operation, constructs the command list to use for building the process.
@@ -80,13 +87,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     protected List<String> executeConstructProcessCommandList() {
         ObjectTools.requireNonNull(project_, "project");
 
-        List<String> args = new ArrayList<>();
+        var args = new ArrayList<String>();
 
+        // java
         args.add(javaTool());
 
+        var sandbox = new Sandbox("bld-checkstyle", project_);
+        var checkstyleDir = downloadCheckstyleDependency(sandbox);
+        var jarList = new ArrayList<>(IOTools.findFilesByExtensions(checkstyleDir, ".jar"));
+
+        // class path
         args.add("-cp");
-        args.add(PathTools.joinClasspath(
-                project_.dependencyClasspathJars(Scope.test, "com.puppycrawl.tools", "checkstyle")));
+        args.add(PathTools.joinClasspath(jarList));
+
+        // main class
         args.add("com.puppycrawl.tools.checkstyle.Main");
 
         options_.forEach((k, v) -> {
@@ -683,6 +697,58 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
 
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
         return optBool("-J", isTree);
+    }
+
+    /**
+     * Sets the Checkstyle version to use.
+     * <p>
+     * Default is {@link #CHECKSTYLE_VERSION}
+     *
+     * @param version the version
+     * @return this operation instance
+     * @throws NullPointerException if {@code version} is {@code null}
+     * @see #version(String)
+     * @see #version()
+     * @since 1.3
+     */
+    public CheckstyleOperation version(Version version) {
+        version_ = ObjectTools.requireNonNull(version, "version");
+        return this;
+    }
+
+    /**
+     * Sets the Checkstyle version to use.
+     * <p>
+     * Default is {@link #CHECKSTYLE_VERSION}
+     *
+     * @param version the version, e.g. {@code 10.21.4}
+     * @return this operation instance
+     * @throws NullPointerException     if {@code version} is {@code null}
+     * @throws IllegalArgumentException if {@code version} is empty or blank
+     * @see #version(Version)
+     * @see #version()
+     * @since 1.3
+     */
+    public CheckstyleOperation version(String version) {
+        version_ = VersionNumber.parse(TextTools.requireNotBlank(version, "version"));
+        return this;
+    }
+
+    /**
+     * Retrieves the Checkstyle version.
+     *
+     * @return the version
+     * @see #version(Version)
+     * @see #version(String)
+     */
+    public Version version() {
+        return version_;
+    }
+
+    private Path downloadCheckstyleDependency(Sandbox sandbox) {
+        var dependencies = List.of(
+                new Dependency("com.puppycrawl.tools", "checkstyle", version_));
+        return sandbox.downloadDependencies(dependencies, REPOSITORIES);
     }
 
     private CheckstyleOperation opt(String label, String key, String value) {

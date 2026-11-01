@@ -30,7 +30,8 @@ import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.dependencies.Repository;
-import rife.bld.dependencies.Scope;
+import rife.bld.dependencies.Version;
+import rife.bld.dependencies.VersionNumber;
 import rife.bld.extension.checkstyle.OutputFormat;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.bld.testing.BlankSource;
@@ -49,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 class CheckstyleOperationTests {
 
     private static final String ADD = "add";
@@ -78,8 +79,6 @@ class CheckstyleOperationTests {
             autoDownloadPurge = true;
 
             repositories = List.of(Repository.MAVEN_CENTRAL, Repository.RIFE2_RELEASES);
-
-            scope(Scope.test).include(dependency("com.puppycrawl.tools", "checkstyle"));
         }
     }
 
@@ -211,6 +210,60 @@ class CheckstyleOperationTests {
                                     "-d -E " +
                                     new File("src/test/resources/TestProject", SRC_MAIN_JAVA).getAbsolutePath() + " " +
                                     new File("src/test/resources/TestProject", SRC_TEST_JAVA).getAbsolutePath());
+        }
+
+        @Test
+        void executeConstructProcessCommandListClasspathEndsWithJars() {
+            var args = newCheckstyleOperation().executeConstructProcessCommandList();
+            var cpIndex = args.indexOf("-cp");
+            assertThat(cpIndex).as("-cp flag should be present").isGreaterThanOrEqualTo(0);
+
+            var classpath = args.get(cpIndex + 1);
+            assertThat(classpath).as("classpath should not be blank").isNotBlank();
+
+            for (var entry : classpath.split(File.pathSeparator)) {
+                assertThat(entry).as("classpath entry should resolve to a jar").endsWith(".jar");
+            }
+        }
+
+        @Test
+        @SuppressWarnings("PMD.DoubleBraceInitialization")
+        void executeConstructProcessCommandListDoesNotUseProjectScope() {
+            var project = new BaseProject() {
+                {
+                    workDirectory = new File("src/test/resources/TestProject");
+                    pkg = "com.example";
+                    name = "NoScopeProject";
+                    version = version(0, 1, 0);
+                    repositories = List.of(Repository.MAVEN_CENTRAL);
+                }
+            };
+
+            var op = new CheckstyleOperation().fromProject(project);
+            var command = String.join(" ", op.executeConstructProcessCommandList());
+            assertThat(command)
+                    .contains("com.puppycrawl.tools.checkstyle.Main")
+                    .contains("checkstyle");
+        }
+
+        @Test
+        void executeConstructProcessCommandListIncludesCheckstyleJar() {
+            var op = newCheckstyleOperation();
+            var command = String.join(" ", op.executeConstructProcessCommandList());
+            assertThat(command)
+                    .as("classpath should be present")
+                    .contains("-cp")
+                    .as("classpath should contain the resolved Checkstyle jar")
+                    .contains("checkstyle");
+        }
+
+        @Test
+        void executeConstructProcessCommandListUsesCustomVersion() {
+            var op = newCheckstyleOperation().version("10.12.0");
+            var command = String.join(" ", op.executeConstructProcessCommandList());
+            assertThat(command)
+                    .as("command should reference the custom Checkstyle version")
+                    .contains("10.12.0");
         }
 
         @Test
@@ -602,6 +655,74 @@ class CheckstyleOperationTests {
             assertThatThrownBy(() -> new CheckstyleOperation().tabWidth(-1))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("tabWidth");
+        }
+    }
+
+    @Nested
+    @DisplayName("Version Tests")
+    class VersionTests {
+
+        @Test
+        void checkstyleVersionConstant() {
+            assertThat(CheckstyleOperation.CHECKSTYLE_VERSION)
+                    .as("default version constant")
+                    .isNotNull();
+            assertThat(CheckstyleOperation.CHECKSTYLE_VERSION.toString())
+                    .as("default version should be non-blank")
+                    .isNotBlank();
+        }
+
+        @Test
+        void defaultVersion() {
+            var op = newCheckstyleOperation();
+            assertThat(op.version())
+                    .as("default version should match the public constant")
+                    .isEqualTo(CheckstyleOperation.CHECKSTYLE_VERSION);
+        }
+
+        @Test
+        void versionFromString() {
+            var op = newCheckstyleOperation().version("10.12.0");
+            assertThat(op.version().toString()).isEqualTo("10.12.0");
+        }
+
+        @Test
+        void versionFromVersionObject() {
+            var version = VersionNumber.parse("10.12.0");
+            var op = newCheckstyleOperation().version(version);
+            assertThat(op.version()).isSameAs(version);
+        }
+
+        @Test
+        void versionOverwritesPreviousValue() {
+            var op = newCheckstyleOperation()
+                    .version("10.12.0")
+                    .version("10.21.4");
+            assertThat(op.version().toString()).isEqualTo("10.21.4");
+        }
+
+        @ParameterizedTest
+        @BlankSource
+        void versionWithBlank(String arg) {
+            assertThatThrownBy(() -> new CheckstyleOperation().version(arg))
+                    .as("blank version string")
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionWithNullString() {
+            assertThatThrownBy(() -> new CheckstyleOperation().version((String) null))
+                    .as("null version string")
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionWithNullVersionObject() {
+            assertThatThrownBy(() -> new CheckstyleOperation().version((Version) null))
+                    .as("null Version")
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 }

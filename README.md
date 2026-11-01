@@ -19,7 +19,7 @@ For more information, please refer to the
 
 ## Check Source Code with Checkstyle
 
-To check your code with Chesktyle, include the following in your build file:
+To check your code with Checkstyle, include the following in your build file:
 
 ```java
 @BuildCommand(summary = "Check code style")
@@ -40,13 +40,30 @@ public void checkstyle() throws Exception {
 Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary)
 for all available configuration options.
 
-## Checkstyle Dependency
+## Checkstyle Version
 
-Don't forget to add a Checkstyle `test` dependency to your build file, as it is
-not provided by the extension. For example:
+The Checkstyle dependency is resolved automatically by the extension, so you no longer
+need to declare it in your build file.
+
+By default, the extension uses the value of `CheckstyleOperation.CHECKSTYLE_VERSION`.
+To pin a specific release, use the `version` method:
 
 ```java
-repositories = List.of(MAVEN_CENTRAL);
-scope(test)
-    .include(dependency("com.puppycrawl.tools", "checkstyle", version(14, 3, 0)));
+@BuildCommand(summary = "Check code style")
+public void checkstyle() throws Exception {
+    new CheckstyleOperation()
+            .fromProject(this)
+            .configurationFile("config/sun_checks.xml")
+            .version("14.4.0")
+            .execute();
+}
+```
+
+If your build file still declares a Checkstyle `test` dependency from an earlier
+version of the extension, it can now be safely removed:
+
+```java
+// No longer required — Checkstyle is resolved by the extension itself.
+// scope(test)
+//     .include(dependency("com.puppycrawl.tools", "checkstyle", version(14, 4, 0)));
 ```
