@@ -37,27 +37,24 @@ public void checkstyle() throws Exception {
 
 - [View Examples](https://github.com/rife2/bld-checkstyle/blob/master/examples/)
 
-Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary)
-for all available configuration options.
 
 ## Checkstyle Version
 
-The Checkstyle dependency is resolved automatically by the extension, so you no longer
-need to declare it in your build file.
+The Checkstyle dependency is resolved automatically by the extension.
+By default, the extension downloads the version defined by the
+[`CHECKSTYLE_VERSION`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#CHECKSTYLE_VERSION)
+constant.
 
-By default, the extension uses the value of 
-[`CheckstyleOperation.CHECKSTYLE_VERSION`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#CHECKSTYLE_VERSION).
-To pin a specific release, use the `version` method:
+To pin a specific release, use the
+[`version`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#version(java.lang.String))
+method:
 
 ```java
-@BuildCommand(summary = "Check code style")
-public void checkstyle() throws Exception {
-    new CheckstyleOperation()
-            .fromProject(this)
-            .configurationFile("config/sun_checks.xml")
-            .version("14.4.0")
-            .execute();
-}
+new CheckstyleOperation()
+        .fromProject(this)
+        .configurationFile("config/sun_checks.xml")
+        .version("14.4.0")
+        .execute();
 ```
 
 If your build file still declares a Checkstyle `test` dependency from an earlier
@@ -68,3 +65,80 @@ version of the extension, it can now be safely removed:
 // scope(test)
 //     .include(dependency("com.puppycrawl.tools", "checkstyle", version(14, 4, 0)));
 ```
+
+## Source Directories
+
+[`fromProject(this)`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#fromProject(rife.bld.BaseProject))
+defaults the source directories to the project's `src/main/java` and
+`src/test/java`. Use
+[`sourceDir(...)`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#sourceDir(java.lang.String...))
+to override them:
+
+```java
+new CheckstyleOperation()
+        .fromProject(this)
+        .configurationFile("config/sun_checks.xml")
+        .sourceDir("src/main/java")         // main only, tests skipped
+        .execute();
+```
+
+## Output Format and File
+
+By default, results are printed to stdout in plain text. Use
+[`format(...)`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#format(rife.bld.extension.checkstyle.OutputFormat))
+for machine-readable output and
+[`outputPath(...)`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#outputPath(java.lang.String))
+to write to a file:
+
+```java
+new CheckstyleOperation()
+        .fromProject(this)
+        .configurationFile("config/sun_checks.xml")
+        .format(OutputFormat.XML)
+        .outputPath("build/reports/checkstyle.xml")
+        .execute();
+```
+
+## Excluding Files and Directories
+
+```java
+new CheckstyleOperation()
+        .fromProject(this)
+        .configurationFile("config/sun_checks.xml")
+        .exclude("src/main/java/generated")
+        .excludeRegex(".*Generated\\.java$")
+        .execute();
+```
+
+## Inspecting a Single File's AST
+
+The AST inspection options (see the API reference for the full list) operate on
+exactly one file. Point
+[`sourceDir(...)`](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#sourceDir(java.lang.String...))
+at that file:
+
+```java
+new CheckstyleOperation()
+        .fromProject(this)
+        .sourceDir("src/main/java/com/example/Foo.java")
+        .treeWithComments(true)
+        .execute();
+```
+
+## Dependency Repository
+
+Checkstyle is resolved from Maven Central by default. To use a different
+repository, for example Google's mirror:
+
+```java
+new CheckstyleOperation()
+        .fromProject(this)
+        .configurationFile("config/sun_checks.xml")
+        .repository(Repository.GOOGLE_MAVEN_CENTRAL)
+        .execute();
+```
+
+## API Reference
+
+Please check the [CheckstyleOperation documentation](https://rife2.github.io/bld-checkstyle/rife/bld/extension/CheckstyleOperation.html#method-summary)
+for all available configuration options.
