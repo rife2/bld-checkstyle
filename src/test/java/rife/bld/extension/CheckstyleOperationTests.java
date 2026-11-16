@@ -59,6 +59,7 @@ class CheckstyleOperationTests {
     private static final String REMOVE = "remove";
     private static final String SRC_MAIN_JAVA = "src/main/java";
     private static final String SRC_TEST_JAVA = "src/test/java";
+
     @RegisterExtension
     @SuppressWarnings({"unused"})
     private static final LoggingExtension loggingExtension = new LoggingExtension(CheckstyleOperation.class.getName());
@@ -289,6 +290,30 @@ class CheckstyleOperationTests {
                     .configurationFile("src/test/resources/sun_checks.xml")
                     .outputPath(tmpFile.getAbsolutePath());
             assertThatCode(op::execute).isInstanceOf(ExitStatusException.class);
+            assertThat(tmpFile).as("tmp file should exist").exists();
+        }
+
+        @Test
+        void executeWithSandboxRepositories() throws Exception {
+            var tmpFile = File.createTempFile("checkstyle-google-mirror", ".txt");
+            tmpFile.deleteOnExit();
+            var op = newCheckstyleOperation()
+                    .configurationFile(Path.of("src/test/resources/google_checks.xml"))
+                    .repository(List.of(Repository.GOOGLE_MAVEN_CENTRAL, Repository.MAVEN_CENTRAL))
+                    .outputPath(tmpFile.toPath());
+            assertThatCode(op::execute).doesNotThrowAnyException();
+            assertThat(tmpFile).as("tmp file should exist").exists();
+        }
+
+        @Test
+        void executeWithSandboxRepositoryMirror() throws Exception {
+            var tmpFile = File.createTempFile("checkstyle-google-mirror", ".txt");
+            tmpFile.deleteOnExit();
+            var op = newCheckstyleOperation()
+                    .configurationFile(Path.of("src/test/resources/google_checks.xml"))
+                    .repository(Repository.GOOGLE_MAVEN_CENTRAL)
+                    .outputPath(tmpFile.toPath());
+            assertThatCode(op::execute).doesNotThrowAnyException();
             assertThat(tmpFile).as("tmp file should exist").exists();
         }
     }

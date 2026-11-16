@@ -75,15 +75,16 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     private final List<File> exclude_ = new ArrayList<>();
     private final Map<String, String> options_ = new HashMap<>();
     private final Set<File> sourceDir_ = new LinkedHashSet<>();
-
+    private boolean defaultsInjected_;
     private @Nullable BaseProject project_;
+    private List<Repository> repositories_ = REPOSITORIES;
     private Version version_ = CHECKSTYLE_VERSION;
 
     /**
      * Part of the {@link #execute} operation, constructs the command list to use for building the process.
      *
      * @return the list of command arguments
-     * @throws NullPointerException if {@code project_} is {@code null}
+     * @throws NullPointerException if no project has been configured
      */
     @Override
     protected List<String> executeConstructProcessCommandList() {
@@ -140,9 +141,11 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Configures the operation from a {@link BaseProject}.
      * <p>
-     * Sets the {@link #sourceDir() source directories} to the project's
-     * {@link BaseProject#srcMainJavaDirectory() main} and
-     * {@link BaseProject#srcTestJavaDirectory() test} Java source directories, if not already set.
+     * If no source directories have been set, the project's main and test Java
+     * source directories are used. Calling any {@code sourceDir} method
+     * afterward replaces those defaults. Calling this method again with a
+     * different project while the defaults are still in effect replaces them
+     * with the new project's source directories.
      *
      * @param project the project to configure from
      * @return this operation instance
@@ -151,8 +154,10 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     @Override
     public CheckstyleOperation fromProject(BaseProject project) {
         project_ = ObjectTools.requireNonNull(project, "fromProject");
-        if (sourceDir_.isEmpty()) {
+        if (defaultsInjected_ || sourceDir_.isEmpty()) {
+            sourceDir_.clear();
             sourceDir_.addAll(List.of(project_.srcMainJavaDirectory(), project_.srcTestJavaDirectory()));
+            defaultsInjected_ = true;
         }
         return this;
     }
@@ -161,12 +166,11 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * Shows Abstract Syntax Tree (AST) branches that match the given XPath query.
      * Corresponds to the {@code -b} option.
      *
-     * @param xPathQuery the XPath query or empty
+     * @param xPathQuery the non-blank XPath query
      * @return this operation instance
-     * @throws NullPointerException     if {@code xPathQuery} is null
+     * @throws NullPointerException     if {@code xPathQuery} is {@code null}
      * @throws IllegalArgumentException if {@code xPathQuery} is blank
      */
-
     public CheckstyleOperation branchMatchingXpath(String xPathQuery) {
         return opt("branch matching xpath", "-b", xPathQuery);
     }
@@ -183,7 +187,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code file} is {@code null}
      * @throws IllegalArgumentException if {@code file} is blank
      */
-
     public CheckstyleOperation configurationFile(String file) {
         TextTools.requireNotBlank(file, "configurationFile");
         return optFile("configuration file", "-c", new File(file));
@@ -197,7 +200,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation configurationFile(File file) {
         ObjectTools.requireNonNull(file, "configurationFile");
         return optFile("configuration file", "-c", file);
@@ -211,7 +213,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation configurationFile(Path file) {
         ObjectTools.requireNonNull(file, "configurationFile");
         return optFile("configuration file", "-c", file.toFile());
@@ -224,7 +225,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isDebug {@code true} to enable debug logging, {@code false} to disable
      * @return this operation instance
      */
-
     public CheckstyleOperation debug(boolean isDebug) {
         return optBool("-d", isDebug);
     }
@@ -235,7 +235,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return a mutable list of excluded files
      * @since 1.1.0
      */
-
     public List<File> exclude() {
         return exclude_;
     }
@@ -248,7 +247,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is blank, or contains blank elements
      */
-
     public CheckstyleOperation exclude(String... paths) {
         TextTools.requireNotBlank(EXCLUDE, paths);
         exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
@@ -263,7 +261,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-
     public CheckstyleOperation exclude(File... paths) {
         ObjectTools.requireNotEmpty(paths, EXCLUDE);
         exclude_.addAll(List.of(paths));
@@ -278,7 +275,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-
     public CheckstyleOperation exclude(Path... paths) {
         ObjectTools.requireNotEmpty(paths, EXCLUDE);
         exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
@@ -293,7 +289,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-
     public CheckstyleOperation exclude(Collection<File> paths) {
         ObjectTools.requireNotEmpty(paths, EXCLUDE);
         exclude_.addAll(paths);
@@ -308,7 +303,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-
     public CheckstyleOperation excludePaths(Collection<Path> paths) {
         ObjectTools.requireNotEmpty(paths, EXCLUDE);
         exclude_.addAll(CollectionTools.combinePathsToFiles(paths));
@@ -323,7 +317,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code patterns} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code patterns} is empty, or contains empty elements
      */
-
     public CheckstyleOperation excludeRegex(String... patterns) {
         TextTools.requireNotBlank(EXCLUDE_REGEX, patterns);
         excludeRegex_.addAll(List.of(patterns));
@@ -338,7 +331,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code patterns} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code patterns} is empty, or contains empty elements
      */
-
     public CheckstyleOperation excludeRegex(Collection<String> patterns) {
         TextTools.requireNotBlank(patterns, EXCLUDE_REGEX);
         excludeRegex_.addAll(patterns);
@@ -350,7 +342,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @return a mutable list of exclude regex patterns
      */
-
     public List<String> excludeRegex() {
         return excludeRegex_;
     }
@@ -363,7 +354,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty, or contains empty elements
      */
-
     public CheckstyleOperation excludeStrings(Collection<String> paths) {
         TextTools.requireNotBlank(paths, EXCLUDE);
         exclude_.addAll(CollectionTools.combineStringsToFiles(paths));
@@ -377,7 +367,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isAllowIgnoreModules {@code true} to execute ignored modules, {@code false} to skip them
      * @return this operation instance
      */
-
     public CheckstyleOperation executeIgnoredModules(boolean isAllowIgnoreModules) {
         return optBool("-E", isAllowIgnoreModules);
     }
@@ -404,7 +393,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param generateChecksAndFileSuppression {@code true} to generate suppression XML, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation generateChecksAndFileSuppression(boolean generateChecksAndFileSuppression) {
         return optBool("-G", generateChecksAndFileSuppression);
     }
@@ -416,7 +404,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param xPathSuppression {@code true} to generate XPath suppression XML, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation generateXpathSuppression(boolean xPathSuppression) {
         return optBool("-g", xPathSuppression);
     }
@@ -428,7 +415,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isTree {@code true} to print the Javadoc tree, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation javadocTree(boolean isTree) {
         return optBool("-j", isTree);
     }
@@ -441,7 +427,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      *
      * @return the mutable options map
      */
-
     public Map<String, String> options() {
         return options_;
     }
@@ -455,7 +440,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code file} is {@code null}
      * @throws IllegalArgumentException if {@code file} is blank
      */
-
     public CheckstyleOperation outputPath(String file) {
         TextTools.requireNotBlank(file, "outputPath");
         return optFile("output path", "-o", new File(file));
@@ -469,7 +453,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation outputPath(File file) {
         ObjectTools.requireNonNull(file, "outputPath");
         return optFile("output path", "-o", file);
@@ -483,7 +466,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation outputPath(Path file) {
         ObjectTools.requireNonNull(file, "outputPath");
         return optFile("output path", "-o", file.toFile());
@@ -498,7 +480,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code file} is {@code null}
      * @throws IllegalArgumentException if {@code file} is blank
      */
-
     public CheckstyleOperation propertiesFile(String file) {
         TextTools.requireNotBlank(file, "propertiesFiles");
         return optFile("properties file", "-p", new File(file));
@@ -512,7 +493,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation propertiesFile(File file) {
         ObjectTools.requireNonNull(file, "propertiesFile");
         return optFile("properties file", "-p", file);
@@ -526,10 +506,41 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @return this operation instance
      * @throws NullPointerException if {@code file} is {@code null}
      */
-
     public CheckstyleOperation propertiesFile(Path file) {
         ObjectTools.requireNonNull(file, "propertiesFile");
         return optFile("properties file", "-p", file.toFile());
+    }
+
+    /**
+     * Sets the repositories to resolve the Checkstyle dependency from.
+     * <p>
+     * Defaults to {@link Repository#MAVEN_CENTRAL}.
+     *
+     * @param repositories the repositories
+     * @return this operation instance
+     * @throws NullPointerException     if {@code repositories} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code repositories} is empty
+     */
+    public CheckstyleOperation repository(Collection<Repository> repositories) {
+        ObjectTools.requireNotEmpty(repositories, "repositories");
+        repositories_ = List.copyOf(repositories);
+        return this;
+    }
+
+    /**
+     * Sets the repositories to resolve the Checkstyle dependency from.
+     * <p>
+     * Defaults to {@link Repository#MAVEN_CENTRAL}.
+     *
+     * @param repositories the repositories
+     * @return this operation instance
+     * @throws NullPointerException     if {@code repositories} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code repositories} is empty
+     */
+    public CheckstyleOperation repository(Repository... repositories) {
+        ObjectTools.requireNotEmpty(repositories, "repositories");
+        repositories_ = List.of(repositories);
+        return this;
     }
 
     /**
@@ -540,9 +551,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is blank, or contains blank elements
      */
-
     public CheckstyleOperation sourceDir(String... dirs) {
         TextTools.requireNotBlank(SOURCE_DIR, dirs);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
         return this;
     }
@@ -555,9 +566,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is empty
      */
-
     public CheckstyleOperation sourceDir(File... dirs) {
         ObjectTools.requireNotEmpty(dirs, SOURCE_DIR);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(List.of(dirs));
         return this;
     }
@@ -570,9 +581,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is empty
      */
-
     public CheckstyleOperation sourceDir(Path... dirs) {
         ObjectTools.requireNotEmpty(dirs, SOURCE_DIR);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
         return this;
     }
@@ -585,19 +596,20 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is empty
      */
-
     public CheckstyleOperation sourceDir(Collection<File> dirs) {
         ObjectTools.requireNotEmpty(dirs, SOURCE_DIR);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(dirs);
         return this;
     }
 
     /**
      * Returns the set of source directories to analyze.
+     * <p>
+     * The returned set is mutable; direct mutation is not tracked by the fluent API.
      *
      * @return a mutable set of source directories
      */
-
     public Set<File> sourceDir() {
         return sourceDir_;
     }
@@ -610,9 +622,9 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is empty
      */
-
     public CheckstyleOperation sourceDirPaths(Collection<Path> dirs) {
         ObjectTools.requireNotEmpty(dirs, SOURCE_DIR);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(CollectionTools.combinePathsToFiles(dirs));
         return this;
     }
@@ -625,22 +637,22 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @throws NullPointerException     if {@code dirs} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code dirs} is empty, or contains empty elements
      */
-
     public CheckstyleOperation sourceDirStrings(Collection<String> dirs) {
         TextTools.requireNotBlank(dirs, SOURCE_DIR);
+        clearInjectedSourceDefaults();
         sourceDir_.addAll(CollectionTools.combineStringsToFiles(dirs));
         return this;
     }
 
     /**
      * Prints XPath suppressions for a specific line and column.
+     * Corresponds to the {@code -s} option.
      *
      * @param line   the line number
      * @param column the column number
      * @return this operation instance
      * @throws IllegalArgumentException if {@code line} or {@code column} is negative
      */
-
     public CheckstyleOperation suppressionLineColumnNumber(int line, int column) {
         ObjectTools.requireNonNegative(line, "suppression line");
         ObjectTools.requireNonNegative(column, "suppression column");
@@ -651,14 +663,13 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
     /**
      * Sets the tab width for column reporting.
      * <p>
-     * A value of {@code 0} disables tab expansion, causing tabs to be counted as a single character.
-     * Corresponds to the {@code -w} option. Default is 8 if not set.
+     * Used only with the {@code -s} option. Defaults to 8 if not set.
+     * Corresponds to the {@code -w} option.
      *
      * @param length the tab width, must not be negative
      * @return this operation instance
      * @throws IllegalArgumentException if {@code length} is negative
      */
-
     public CheckstyleOperation tabWidth(int length) {
         ObjectTools.requireNonNegative(length, "tabWidth");
         options_.put("-w", String.valueOf(length));
@@ -672,7 +683,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isTree {@code true} to print the AST, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation tree(boolean isTree) {
         return optBool("-t", isTree);
     }
@@ -684,7 +694,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isTree {@code true} to print the AST with comments, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation treeWithComments(boolean isTree) {
         return optBool("-T", isTree);
     }
@@ -696,7 +705,6 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
      * @param isTree {@code true} to print the AST with Javadoc, {@code false} otherwise
      * @return this operation instance
      */
-
     public CheckstyleOperation treeWithJavadoc(boolean isTree) {
         return optBool("-J", isTree);
     }
@@ -736,6 +744,7 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return this;
     }
 
+
     /**
      * Retrieves the Checkstyle version.
      *
@@ -747,10 +756,17 @@ public class CheckstyleOperation extends AbstractProcessOperation<CheckstyleOper
         return version_;
     }
 
+    private void clearInjectedSourceDefaults() {
+        if (defaultsInjected_) {
+            sourceDir_.clear();
+            defaultsInjected_ = false;
+        }
+    }
+
     private Path downloadCheckstyleDependency(Sandbox sandbox) {
         var dependencies = List.of(
                 new Dependency("com.puppycrawl.tools", "checkstyle", version_));
-        return sandbox.downloadDependencies(dependencies, REPOSITORIES);
+        return sandbox.downloadDependencies(dependencies, repositories_);
     }
 
     private CheckstyleOperation opt(String label, String key, String value) {
